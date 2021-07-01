@@ -18,87 +18,61 @@ contract Exchange {
     //Importing Libraries
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
-    using Counters for uint256;
+    using Counters for Counters.Counter;
 
     //Seen Nonces - to prevent replay attacks
-    mapping(address => mapping(uint256 => bool)) private seenNonces;
+    //mapping(address => mapping(uint256 => bool)) private seenNonces;
 
     //Storage
     mapping(address => mapping(address => uint256)) private userTokens; //Maps token balances for an account
 
+    //Order Mappings
+    mapping(uint256 => OfferInfo) public currentOffers;
+
     //State Variables
-    uint256 internal currentOrderId = 0;
+    Counters.Counter private currentOrderId;
+
+    //Offer Struct
+    struct OfferInfo {
+        uint256    id;        // <-- order id  
+        uint     sell_amt;   // <-- amount to pay/sell (wei)
+        address  sell_gem;   // <-- address of token
+        uint     buy_amt;   // <-- amount to buy (wei)
+        address  buy_gem;   // <-- address of token
+        address  owner;    // <-- who created the offer
+        uint256  expires;    // <-- when the offer expires
+        uint256  timestamp; // <-- when offer was created
+        bool     orderFilled; // <-- false as default true when order is canceled or filled
+    }
 
     //Events
-    event Order(
-        address tokenGet,
-        uint256 amountGet,
-        address tokenGive,
-        uint256 amountGive,
-        uint256 expires,
-        uint256 nonce,
-        address user
-    );
-    event Cancel(
-        address tokenGet,
-        uint256 amountGet,
-        address tokenGive,
-        uint256 amountGive,
-        uint256 expires,
-        uint256 nonce,
-        address user,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    );
-    event Trade(
-        address tokenGet,
-        uint256 amountGet,
-        address tokenGive,
-        uint256 amountGive,
-        address get,
-        address give
-    );
-    event PartialFill(
-        address tokenGet,
-        uint256 amountGet,
-        address tokenGive,
-        uint256 amountGive,
-        uint256 expires,
-        uint256 nonce,
-        address user,
-        address taker,
-        uint256 takerAmount
-    );
-    event OrderFilled(
-        address tokenGet,
-        uint256 amountGet,
-        address tokenGive,
-        uint256 amountGive,
-        uint256 expires,
-        uint256 nonce,
-        address user
-    );
-    event Deposit(
-        address token,
-        address user, 
-        uint256 amount, 
-        uint256 balance);
-    event Withdraw(
-        address token,
-        address user,
-        uint256 amount,
-        uint256 balance
-    );
-    event OrderExpired(
-        address tokenGet,
-        uint256 amountGet,
-        address tokenGive,
-        uint256 amountGive,
-        uint256 expires,
-        uint256 nonce,
-        address user
-    );
+    event MakeOffer(uint _sell_amt, address _sell_gem, uint _buy_amt, address _buy_gem, address _owner, uint256 _expires, uint256 timeStamp);
+    event PartialFillOffer(uint _sell_amt, address _sell_gem, uint _buy_amt, address _buy_gem, address _owner, uint256 _expires, uint256 timeStamp);
+    event FilledOffer(uint _sell_amt, address _sell_gem, uint _buy_amt, address _buy_gem, address _owner, uint256 _expires, uint256 timeStamp);
+    event Deposit(address token,address user, uint256 amount, uint256 balance);
+    event Withdraw(address token,address user,uint256 amount,uint256 balance);
+
+    //Modifiers
+    bool private mutex = false;//global mutex variable
+    
+    /**
+    @dev Stops recusive function calls - prevents re-entrancy attack
+    */
+    modifier preventRecursion {
+        if(mutex == false) {
+        mutex = true;
+        _;
+        mutex = false;
+        }
+    }
+
+    /**
+    @dev Checks if the order is active
+    */
+    modifier orderActive(uint256 _id){
+        require(currentOffers[_id].sell_amt > 0, "Order is not active");
+        _;
+    }
 
     /**
     Deposit ERC20 Token into the contract
@@ -107,7 +81,7 @@ contract Exchange {
     @notice Please use this function to deposit tokens into the contract,
     as they will therefore be tracked by the contract
     */
-    function depositToken(address _tokenAddress, uint256 _tokenAmount) public {
+    function depositToken(address _tokenAddress, uint256 _tokenAmount) public  {
 
         require(address(_tokenAddress) != address(0x0),"This is Ether, Please deposit a ERC20 compliant token");
 
@@ -131,7 +105,7 @@ contract Exchange {
     @param _tokenAddress The address of the token you want to withdraw from the contract
     @param _tokenAmount The amount of the token you want to withdraw from the contract
     */
-    function withdrawToken(address _tokenAddress, uint256 _tokenAmount) public {
+    function withdrawToken(address _tokenAddress, uint256 _tokenAmount) public preventRecursion {
 
         //Check they actually have a balance for the token
         require(userTokens[msg.sender][_tokenAddress] >= _tokenAmount,"You do not have enough tokens to withdraw");
@@ -158,16 +132,90 @@ contract Exchange {
     }
 
     //Maker
-    function placeOffer(uint _pay_amt, address _pay_gem, uint _buy_amt, address _buy_gem) public returns (uint) {
+    function makeOffer(uint _sell_amt, address _sell_gem, uint _buy_amt, address _buy_gem, uint256 _expires) public returns (uint) {
 
-        //add to the order book
+        //Perform Checks 
+        
+        //check reentrancy 
+        
+        //Make sure that they have enough funds for transfer
+        require(userTokens[msg.sender][_sell_gem] >= _sell_amt, "You don't have enought funds to make the trade");
+
+        //Create order for the order book and add it to the order book
+        uint256 timeStamp = block.timestamp;
+        currentOffers[Counters.current(currentOrderId)] = OfferInfo(Counters.current(currentOrderId), _sell_amt, _sell_gem, _buy_amt, _buy_gem, msg.sender, _expires ,timeStamp,false);
+
+        emit MakeOffer(_sell_amt, _sell_gem, _buy_amt, _buy_gem, msg.sender, _expires, timeStamp);
+
+        //get current order id
+        uint256 currentID = Counters.current(currentOrderId);
+
+        //increment counter
+        Counters.increment(currentOrderId);
+
+        return currentID;
 
     }
 
     //Taker 
-    function fillOffer(uint _order_id, uint _quantity) public {
+    function takeOffer(uint _order_id, uint _quantity) public preventRecursion {
 
-        //Remove from order book
+        //Getting current offer
+        OfferInfo memory currentOffer = currentOffers[_order_id];
+
+        //Get amount that the seller is selling
+        uint256 tokenSellAmount =  currentOffer.sell_amt;
+
+        //check to see that it is ok to trade
+        require(_quantity <= tokenSellAmount, "To much tokens for the trade");
+
+        //Get order token
+        address tokenAddress =  currentOffer.buy_gem;
+
+        //Check if you have enought funds to take the order for a specfic token
+        require(userTokens[msg.sender][tokenAddress] >= _quantity, "You don't have the required token amount to make the trade");
+
+        //make sure that you are not taking more than the they are selling - price infered on exchange esimated price as not just a order price for fiat
+        uint256 tradeAmount = _quantity.mul(currentOffer.buy_amt).div(currentOffer.sell_amt);
+
+        //Make sure trade amount is valid
+        require(tradeAmount == 0, "Trade amount is not valid");
+
+        //Move the funds sell token from each user
+        userTokens[currentOffer.owner][currentOffer.sell_gem].sub(currentOffer.sell_amt);
+        userTokens[msg.sender][currentOffer.buy_gem].sub(currentOffer.buy_amt);
+
+        //Add the token trades back
+        userTokens[currentOffer.owner][currentOffer.buy_gem].add(currentOffer.buy_amt);
+        userTokens[msg.sender][currentOffer.sell_gem].add(currentOffer.sell_amt);
+
+        //Updating order information
+        currentOffer.buy_amt.sub(_quantity);
+        currentOffer.sell_amt.sub(tradeAmount);
+
+        //transfer tokens on the coin contract??
+
+        //Has the order been finished - reset the order
+        if(currentOffer.sell_amt == 0){
+            emit PartialFillOffer(currentOffer.sell_amt, currentOffer.sell_gem, currentOffer.buy_amt, currentOffer.buy_gem, currentOffer.owner, currentOffer.expires, block.timestamp);
+            //Reset order
+            delete currentOffers[_order_id]; 
+        }
+        else{
+            emit FilledOffer(currentOffer.sell_amt, currentOffer.sell_gem, currentOffer.buy_amt, currentOffer.buy_gem, currentOffer.owner, currentOffer.expires, block.timestamp);
+        }
+    }
+
+    //Cancel Order
+    function cancelOffer(uint _order_id) public orderActive(_order_id) {
+        //Make sure it is your order to cancel
+        //Make sure it is an order and it is active
+        //Make sure it has not been canceled or expired
+        //Make sure order and account caller match up
+
+        delete currentOffers[_order_id];
+
+        //Remove the funds back to the account that called the function
 
     }
 
