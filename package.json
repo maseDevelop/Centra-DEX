@@ -24,5 +24,8 @@
   "bugs": {
     "url": "https://github.com/maseDevelop/chain_DEX/issues"
   },
-  "homepage": "https://github.com/maseDevelop/chain_DEX#readme"
+  "homepage": "https://github.com/maseDevelop/chain_DEX#readme",
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.2.0"
+  }
 }
