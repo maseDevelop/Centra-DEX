@@ -1,0 +1,28 @@
+{
+  "name": "off_chain_exchange",
+  "version": "1.0.0",
+  "description": "Off Chain Exchange",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "truffle test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maseDevelop/on_chain_DEX.git"
+  },
+  "keywords": [
+    "On",
+    "Chain",
+    "Exchange",
+    "Ethereum"
+  ],
+  "author": "Mason Elliott",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/maseDevelop/on_chain_DEX/issues"
+  },
+  "homepage": "https://github.com/maseDevelop/on_chain_DEX#readme"
+}
