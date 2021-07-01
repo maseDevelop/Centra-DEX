@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/maseDevelop/on_chain_DEX.git"
+    "url": "git+https://github.com/maseDevelop/chain_DEX.git"
   },
   "keywords": [
     "On",
@@ -22,7 +22,7 @@
   "author": "Mason Elliott",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/maseDevelop/on_chain_DEX/issues"
+    "url": "https://github.com/maseDevelop/chain_DEX/issues"
   },
-  "homepage": "https://github.com/maseDevelop/on_chain_DEX#readme"
+  "homepage": "https://github.com/maseDevelop/chain_DEX#readme"
 }
