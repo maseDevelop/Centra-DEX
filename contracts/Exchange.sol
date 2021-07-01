@@ -51,6 +51,7 @@ contract Exchange {
     event FilledOffer(uint _sell_amt, address _sell_gem, uint _buy_amt, address _buy_gem, address _owner, uint256 _expires, uint256 timeStamp);
     event Deposit(address token,address user, uint256 amount, uint256 balance);
     event Withdraw(address token,address user,uint256 amount,uint256 balance);
+    event CanceledOffer(uint _sell_amt, address _sell_gem, uint _buy_amt, address _buy_gem, address _owner, uint256 _expires, uint256 timeStamp);
 
     //Modifiers
     bool private mutex = false;//global mutex variable
@@ -141,6 +142,9 @@ contract Exchange {
         //Make sure that they have enough funds for transfer
         require(userTokens[msg.sender][_sell_gem] >= _sell_amt, "You don't have enought funds to make the trade");
 
+        //Remove ability to trade funds - lock them up for the trade
+        userTokens[msg.sender][_sell_gem].sub(_sell_amt); 
+
         //Create order for the order book and add it to the order book
         uint256 timeStamp = block.timestamp;
         currentOffers[Counters.current(currentOrderId)] = OfferInfo(Counters.current(currentOrderId), _sell_amt, _sell_gem, _buy_amt, _buy_gem, msg.sender, _expires ,timeStamp,false);
@@ -163,6 +167,8 @@ contract Exchange {
         //Getting current offer
         OfferInfo memory currentOffer = currentOffers[_order_id];
 
+        //Check expiry date
+
         //Get amount that the seller is selling
         uint256 tokenSellAmount =  currentOffer.sell_amt;
 
@@ -181,6 +187,9 @@ contract Exchange {
         //Make sure trade amount is valid
         require(tradeAmount == 0, "Trade amount is not valid");
 
+        //Renstate the owners ablity to trade funds that they put up for sale - by how much the owner is willig to pay
+        userTokens[currentOffer.owner][currentOffer.sell_gem].add(_quantity);
+
         //Move the funds sell token from each user
         userTokens[currentOffer.owner][currentOffer.sell_gem].sub(currentOffer.sell_amt);
         userTokens[msg.sender][currentOffer.buy_gem].sub(currentOffer.buy_amt);
@@ -188,6 +197,8 @@ contract Exchange {
         //Add the token trades back
         userTokens[currentOffer.owner][currentOffer.buy_gem].add(currentOffer.buy_amt);
         userTokens[msg.sender][currentOffer.sell_gem].add(currentOffer.sell_amt);
+
+        
 
         //Updating order information
         currentOffer.buy_amt.sub(_quantity);
@@ -208,14 +219,17 @@ contract Exchange {
 
     //Cancel Order
     function cancelOffer(uint _order_id) public orderActive(_order_id) {
-        //Make sure it is your order to cancel
-        //Make sure it is an order and it is active
-        //Make sure it has not been canceled or expired
-        //Make sure order and account caller match up
 
+        OfferInfo memory currentOffer = currentOffers[_order_id];
+
+        //Make sure that only the order can be cancel by the order creator
+        require(currentOffer.owner == msg.sender, "You are not the order creator");
+
+        //Emiting event
+        emit CanceledOffer(currentOffer.sell_amt, currentOffer.sell_gem, currentOffer.buy_amt, currentOffer.buy_gem, currentOffer.owner, currentOffer.expires, block.timestamp);
+
+        //Reseting order
         delete currentOffers[_order_id];
-
-        //Remove the funds back to the account that called the function
 
     }
 
