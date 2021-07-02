@@ -36,9 +36,9 @@ contract Exchange {
     struct OfferInfo {
         uint256    id;        // <-- order id  
         uint     sell_amt;   // <-- amount to pay/sell (wei)
-        address  sell_gem;   // <-- address of token
+        address  sell_token;   // <-- address of token
         uint     buy_amt;   // <-- amount to buy (wei)
-        address  buy_gem;   // <-- address of token
+        address  buy_token;   // <-- address of token
         address  owner;    // <-- who created the offer
         uint256  expires;    // <-- when the offer expires
         uint256  timestamp; // <-- when offer was created
@@ -46,12 +46,12 @@ contract Exchange {
     }
 
     //Events
-    event MakeOffer(uint _sell_amt, address _sell_gem, uint _buy_amt, address _buy_gem, address _owner, uint256 _expires, uint256 timeStamp);
-    event PartialFillOffer(uint _sell_amt, address _sell_gem, uint _buy_amt, address _buy_gem, address _owner, uint256 _expires, uint256 timeStamp);
-    event FilledOffer(uint _sell_amt, address _sell_gem, uint _buy_amt, address _buy_gem, address _owner, uint256 _expires, uint256 timeStamp);
+    event MakeOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, address _owner, uint256 _expires, uint256 timeStamp);
+    event PartialFillOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, address _owner, uint256 _expires, uint256 timeStamp);
+    event FilledOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, address _owner, uint256 _expires, uint256 timeStamp);
     event Deposit(address token,address user, uint256 amount, uint256 balance);
     event Withdraw(address token,address user,uint256 amount,uint256 balance);
-    event CanceledOffer(uint _sell_amt, address _sell_gem, uint _buy_amt, address _buy_gem, address _owner, uint256 _expires, uint256 timeStamp);
+    event CanceledOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, address _owner, uint256 _expires, uint256 timeStamp);
 
     //Modifiers
     bool private mutex = false;//global mutex variable
@@ -132,24 +132,31 @@ contract Exchange {
         return userTokens[msg.sender][_tokenAddress];
     }
 
-    //Maker
-    function makeOffer(uint _sell_amt, address _sell_gem, uint _buy_amt, address _buy_gem, uint256 _expires) public returns (uint) {
+    /**
+    //Make offer for trade
+    @param _sell_amt The amount of the token you want to sell
+    @param _sell_token The address of the token you want to sell
+    @param _buy_amt The amount of tokens you want to buy for
+    @param _buy_token The address of the tokens you wan to buy
+    @param _expires when the order expires
+     */
+    function makeOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, uint256 _expires) public returns (uint) {
 
-        //Perform Checks 
+        //Perform Checks for eth
         
         //check reentrancy 
         
         //Make sure that they have enough funds for transfer
-        require(userTokens[msg.sender][_sell_gem] >= _sell_amt, "You don't have enought funds to make the trade");
+        require(userTokens[msg.sender][_sell_token] >= _sell_amt, "You don't have enought funds to make the trade");
 
         //Remove ability to trade funds - lock them up for the trade
-        userTokens[msg.sender][_sell_gem].sub(_sell_amt); 
+        userTokens[msg.sender][_sell_token].sub(_sell_amt); 
 
         //Create order for the order book and add it to the order book
         uint256 timeStamp = block.timestamp;
-        currentOffers[Counters.current(currentOrderId)] = OfferInfo(Counters.current(currentOrderId), _sell_amt, _sell_gem, _buy_amt, _buy_gem, msg.sender, _expires ,timeStamp,false);
+        currentOffers[Counters.current(currentOrderId)] = OfferInfo(Counters.current(currentOrderId), _sell_amt, _sell_token, _buy_amt, _buy_token, msg.sender, _expires ,timeStamp,false);
 
-        emit MakeOffer(_sell_amt, _sell_gem, _buy_amt, _buy_gem, msg.sender, _expires, timeStamp);
+        emit MakeOffer(_sell_amt, _sell_token, _buy_amt, _buy_token, msg.sender, _expires, timeStamp);
 
         //get current order id
         uint256 currentID = Counters.current(currentOrderId);
@@ -161,7 +168,11 @@ contract Exchange {
 
     }
 
-    //Taker 
+    /**
+    //Takes a current offer
+    @param _order_id The id of the order you want to fill
+    @param _quantity The amount of the order you want to fill
+     */
     function takeOffer(uint _order_id, uint _quantity) public preventRecursion {
 
         //Getting current offer
@@ -176,7 +187,7 @@ contract Exchange {
         require(_quantity <= tokenSellAmount, "To much tokens for the trade");
 
         //Get order token
-        address tokenAddress =  currentOffer.buy_gem;
+        address tokenAddress =  currentOffer.buy_token;
 
         //Check if you have enought funds to take the order for a specfic token
         require(userTokens[msg.sender][tokenAddress] >= _quantity, "You don't have the required token amount to make the trade");
@@ -188,17 +199,15 @@ contract Exchange {
         require(tradeAmount == 0, "Trade amount is not valid");
 
         //Renstate the owners ablity to trade funds that they put up for sale - by how much the owner is willig to pay
-        userTokens[currentOffer.owner][currentOffer.sell_gem].add(_quantity);
+        userTokens[currentOffer.owner][currentOffer.sell_token].add(_quantity);
 
         //Move the funds sell token from each user
-        userTokens[currentOffer.owner][currentOffer.sell_gem].sub(currentOffer.sell_amt);
-        userTokens[msg.sender][currentOffer.buy_gem].sub(currentOffer.buy_amt);
+        userTokens[currentOffer.owner][currentOffer.sell_token].sub(currentOffer.sell_amt);
+        userTokens[msg.sender][currentOffer.buy_token].sub(currentOffer.buy_amt);
 
         //Add the token trades back
-        userTokens[currentOffer.owner][currentOffer.buy_gem].add(currentOffer.buy_amt);
-        userTokens[msg.sender][currentOffer.sell_gem].add(currentOffer.sell_amt);
-
-        
+        userTokens[currentOffer.owner][currentOffer.buy_token].add(currentOffer.buy_amt);
+        userTokens[msg.sender][currentOffer.sell_token].add(currentOffer.sell_amt);
 
         //Updating order information
         currentOffer.buy_amt.sub(_quantity);
@@ -208,16 +217,19 @@ contract Exchange {
 
         //Has the order been finished - reset the order
         if(currentOffer.sell_amt == 0){
-            emit PartialFillOffer(currentOffer.sell_amt, currentOffer.sell_gem, currentOffer.buy_amt, currentOffer.buy_gem, currentOffer.owner, currentOffer.expires, block.timestamp);
+            emit PartialFillOffer(currentOffer.sell_amt, currentOffer.sell_token, currentOffer.buy_amt, currentOffer.buy_token, currentOffer.owner, currentOffer.expires, block.timestamp);
             //Reset order
             delete currentOffers[_order_id]; 
         }
         else{
-            emit FilledOffer(currentOffer.sell_amt, currentOffer.sell_gem, currentOffer.buy_amt, currentOffer.buy_gem, currentOffer.owner, currentOffer.expires, block.timestamp);
+            emit FilledOffer(currentOffer.sell_amt, currentOffer.sell_token, currentOffer.buy_amt, currentOffer.buy_token, currentOffer.owner, currentOffer.expires, block.timestamp);
         }
     }
 
-    //Cancel Order
+    /**
+    //Cancels the current order
+    @param _order_id the id of the order to cancel - can only cancel if you are owner of the order
+     */
     function cancelOffer(uint _order_id) public orderActive(_order_id) {
 
         OfferInfo memory currentOffer = currentOffers[_order_id];
@@ -226,17 +238,12 @@ contract Exchange {
         require(currentOffer.owner == msg.sender, "You are not the order creator");
 
         //Emiting event
-        emit CanceledOffer(currentOffer.sell_amt, currentOffer.sell_gem, currentOffer.buy_amt, currentOffer.buy_gem, currentOffer.owner, currentOffer.expires, block.timestamp);
+        emit CanceledOffer(currentOffer.sell_amt, currentOffer.sell_token, currentOffer.buy_amt, currentOffer.buy_token, currentOffer.owner, currentOffer.expires, block.timestamp);
 
         //Reseting order
         delete currentOffers[_order_id];
 
     }
-
-    
-
-
-
 }
 
 
