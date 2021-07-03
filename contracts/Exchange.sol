@@ -157,7 +157,7 @@ contract Exchange {
         require(usertokens[msg.sender][_sell_token] >= _sell_amt, "You don't have enought funds to make the trade");
 
         //Remove ability to trade funds - lock them up for the trade
-        usertokens[msg.sender][_sell_token].sub(_sell_amt); 
+        usertokens[msg.sender][_sell_token] = usertokens[msg.sender][_sell_token].sub(_sell_amt); 
 
         //Create order for the order book and add it to the order book
         uint256 timeStamp = block.timestamp;
@@ -178,12 +178,12 @@ contract Exchange {
     function takeOffer(uint _order_id, uint _quantity) public preventRecursion {
 
         //Getting current offer
-        OfferInfo memory currentOffer = currentOffers[_order_id];
+        OfferInfo storage currentOffer = currentOffers[_order_id];
 
         //Check expiry date
 
         //Get amount that the seller is selling
-        uint256 tokenSellAmount =  currentOffer.sell_amt;
+        uint256 tokenSellAmount =  currentOffers[_order_id].sell_amt;
 
         //check to see that it is ok to trade
         require(_quantity <= tokenSellAmount, "To much tokens for the trade");
@@ -198,33 +198,33 @@ contract Exchange {
         uint256 tradeAmount = _quantity.mul(currentOffer.buy_amt).div(currentOffer.sell_amt);
 
         //Make sure trade amount is valid
-        require(tradeAmount == 0, "Trade amount is not valid");
+        require(tradeAmount > 0, "Trade amount is not valid");
 
         //Renstate the owners ablity to trade funds that they put up for sale - by how much the owner is willig to pay
-        usertokens[currentOffer.owner][currentOffer.sell_token].add(_quantity);
+        usertokens[currentOffer.owner][currentOffer.sell_token] = usertokens[currentOffer.owner][currentOffer.sell_token].add(_quantity);
 
         //Move the funds sell token from each user
-        usertokens[currentOffer.owner][currentOffer.sell_token].sub(currentOffer.sell_amt);
-        usertokens[msg.sender][currentOffer.buy_token].sub(currentOffer.buy_amt);
+        usertokens[currentOffer.owner][currentOffer.sell_token] = usertokens[currentOffer.owner][currentOffer.sell_token].sub(currentOffer.sell_amt);
+        usertokens[msg.sender][currentOffer.buy_token] = usertokens[msg.sender][currentOffer.buy_token].sub(currentOffer.buy_amt);
 
         //Add the token trades back
-        usertokens[currentOffer.owner][currentOffer.buy_token].add(currentOffer.buy_amt);
-        usertokens[msg.sender][currentOffer.sell_token].add(currentOffer.sell_amt);
+        usertokens[currentOffer.owner][currentOffer.buy_token] = usertokens[currentOffer.owner][currentOffer.buy_token].add(currentOffer.buy_amt);
+        usertokens[msg.sender][currentOffer.sell_token] = usertokens[msg.sender][currentOffer.sell_token].add(currentOffer.sell_amt);
 
         //Updating order information
-        currentOffer.buy_amt.sub(_quantity);
-        currentOffer.sell_amt.sub(tradeAmount);
+        currentOffer.buy_amt = currentOffer.buy_amt.sub(_quantity);
+        currentOffer.sell_amt = currentOffer.sell_amt.sub(tradeAmount);
 
         //transfer tokens on the coin contract??
 
         //Has the order been finished - reset the order
         if(currentOffer.sell_amt == 0){
-            emit PartialFillOffer(currentOffer.sell_amt, currentOffer.sell_token, currentOffer.buy_amt, currentOffer.buy_token, currentOffer.owner, currentOffer.expires, block.timestamp);
+            emit FilledOffer(currentOffer.sell_amt, currentOffer.sell_token, currentOffer.buy_amt, currentOffer.buy_token, currentOffer.owner, currentOffer.expires, block.timestamp);
             //Reset order
-            delete currentOffers[_order_id]; 
+            delete currentOffers[_order_id];
         }
         else{
-            emit FilledOffer(currentOffer.sell_amt, currentOffer.sell_token, currentOffer.buy_amt, currentOffer.buy_token, currentOffer.owner, currentOffer.expires, block.timestamp);
+            emit PartialFillOffer(currentOffer.sell_amt, currentOffer.sell_token, currentOffer.buy_amt, currentOffer.buy_token, currentOffer.owner, currentOffer.expires, block.timestamp);
         }
     }
 

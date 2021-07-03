@@ -2,6 +2,9 @@ const Exchange = artifacts.require("Exchange");
 const Testtoken1 = artifacts.require("Testtoken1");
 const Testtoken2 = artifacts.require("Testtoken2");
 
+//Truffle asserts 
+const truffleAssert = require('truffle-assertions');
+
 contract("Testtoken1", accounts => {
 
     //Create the token1 with supply as stated by the contracts constructor
@@ -177,16 +180,19 @@ contract("Exchange", (accounts) => {
     describe("testing taking an offer", () =>{
 
         it("can take a currently loaded order", async () => {
-            console.log("address token 1: ", this.token1.address);
-            
+    
             await this.exchange.depositToken(this.token1.address,10,{from: accounts[2]});
-            const t = await this.exchange.getOrderDetails(1,{from: accounts[2]});
-            console.log(t);
-            await this.exchange.takeOffer(1,10,{from: accounts[2]});
-            
-        })
-        
 
+            const tx = await this.exchange.takeOffer(1,10,{from: accounts[2]});
+
+            const orderOutput = await this.exchange.getOrderDetails(1);
+
+            truffleAssert.eventEmitted(tx, 'FilledOffer');
+            assert(orderOutput['sell_amt'] == 0, "sell amount not equal to 0");
+            assert(orderOutput['buy_amt'] == 0, "buy amount not equal to 0");
+    
+            
+        });
 
     });
 });
