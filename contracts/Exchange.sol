@@ -152,6 +152,9 @@ contract Exchange {
         //Perform Checks for eth
         
         //check reentrancy 
+
+        //Checking to make sure they are not the same tokens
+        require(_sell_token != _buy_token, "These tokens are the same, please place an offer with different tokens");
         
         //Make sure that they have enough funds for transfer
         require(usertokens[msg.sender][_sell_token] >= _sell_amt, "You don't have enought funds to make the trade");
