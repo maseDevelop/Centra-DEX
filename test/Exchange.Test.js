@@ -2,6 +2,7 @@ const Exchange = artifacts.require("Exchange");
 const Testtoken1 = artifacts.require("Testtoken1");
 const Testtoken2 = artifacts.require("Testtoken2");
 
+const { assert } = require('chai');
 //Truffle asserts 
 const truffleAssert = require('truffle-assertions');
 
@@ -179,6 +180,11 @@ contract("Exchange", (accounts) => {
 
     describe("testing taking an offer", () =>{
 
+        it("because account[1] made an offer, there tokens should be in escrow", async ()=>{
+            const bal = await this.exchange.getBalance(this.token2.address,{from: accounts[1]});
+            assert(bal,0,"account[1] tokens not in escrow");
+        });
+
         it("can take a currently loaded order", async () => {
     
             await this.exchange.depositToken(this.token1.address,10,{from: accounts[2]});
@@ -190,7 +196,22 @@ contract("Exchange", (accounts) => {
             truffleAssert.eventEmitted(tx, 'FilledOffer');
             assert(orderOutput['sell_amt'] == 0, "sell amount not equal to 0");
             assert(orderOutput['buy_amt'] == 0, "buy amount not equal to 0");
+
+            const bal = await this.exchange.getBalance(this.token2.address,{from: accounts[2]});
+            assert(bal,10,"Not the right updated  balances");
     
+            
+        });
+
+        it("balances are updated for each trading account", async () => {
+            const bal1 = await this.exchange.getBalance(this.token2.address,{from: accounts[1]});
+            const bal2 = await this.exchange.getBalance(this.token2.address,{from: accounts[2]});
+
+            assert(bal1,0,"account[1] balance not updated");
+            assert(bal2,10,"account[2] balance not updated");
+        });
+
+        it("partial orders can be made and the order is updated", async () =>{
             
         });
 
