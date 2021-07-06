@@ -147,7 +147,7 @@ contract Exchange {
     @param _buy_token The address of the tokens you wan to buy
     @param _expires when the order expires
      */
-    function makeOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, uint256 _expires) public {
+    function makeOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, uint256 _expires) public returns (uint256) {
 
         //Perform Checks for eth
         
@@ -168,10 +168,18 @@ contract Exchange {
 
         emit MakeOffer(Counters.current(currentOrderId),_sell_amt, _sell_token, _buy_amt, _buy_token, msg.sender, _expires, timeStamp);
 
+        //Storing current return value
+        uint256 returnValue = Counters.current(currentOrderId);
+
         //increment counter
         Counters.increment(currentOrderId);
 
+        return returnValue;
+
     }
+
+    event TradeAmount(uint256 tradeAmount);
+    event AddressGet(address add);
 
     /**
     //Takes a current offer
@@ -192,7 +200,7 @@ contract Exchange {
         require(_quantity <= tokenSellAmount, "To much tokens for the trade");
 
         //Get order token
-        address tokenAddress =  currentOffer.buy_token;
+        address tokenAddress = currentOffer.buy_token;
 
         //Check if you have enought funds to take the order for a specfic token
         require(usertokens[msg.sender][tokenAddress] >= _quantity, "You don't have the required token amount to make the trade");
@@ -201,18 +209,18 @@ contract Exchange {
         uint256 tradeAmount = _quantity.mul(currentOffer.buy_amt).div(currentOffer.sell_amt);
 
         //Make sure trade amount is valid
-        require(tradeAmount > 0, "Trade amount is not valid");
-
+        require(tradeAmount >= 0, "Trade amount is not valid");
+        
         //Renstate the owners ablity to trade funds that they put up for sale - by how much the owner is willig to pay
         usertokens[currentOffer.owner][currentOffer.sell_token] = usertokens[currentOffer.owner][currentOffer.sell_token].add(_quantity);
 
-        //Move the funds sell token from each user
-        usertokens[currentOffer.owner][currentOffer.sell_token] = usertokens[currentOffer.owner][currentOffer.sell_token].sub(currentOffer.sell_amt);
-        usertokens[msg.sender][currentOffer.buy_token] = usertokens[msg.sender][currentOffer.buy_token].sub(currentOffer.buy_amt);
+        //Move the funds sell token from each user   
+        usertokens[currentOffer.owner][currentOffer.sell_token] = usertokens[currentOffer.owner][currentOffer.sell_token].sub(_quantity);   
+        usertokens[msg.sender][currentOffer.buy_token] = usertokens[msg.sender][currentOffer.buy_token].sub(tradeAmount);
 
         //Add the token trades back
-        usertokens[currentOffer.owner][currentOffer.buy_token] = usertokens[currentOffer.owner][currentOffer.buy_token].add(currentOffer.buy_amt);
-        usertokens[msg.sender][currentOffer.sell_token] = usertokens[msg.sender][currentOffer.sell_token].add(currentOffer.sell_amt);
+        usertokens[currentOffer.owner][currentOffer.buy_token] = usertokens[currentOffer.owner][currentOffer.buy_token].add(tradeAmount);
+        usertokens[msg.sender][currentOffer.sell_token] = usertokens[msg.sender][currentOffer.sell_token].add(_quantity);
 
         //Updating order information
         currentOffer.buy_amt = currentOffer.buy_amt.sub(_quantity);
@@ -228,6 +236,7 @@ contract Exchange {
         }
         else{
             emit PartialFillOffer(currentOffer.sell_amt, currentOffer.sell_token, currentOffer.buy_amt, currentOffer.buy_token, currentOffer.owner, currentOffer.expires, block.timestamp);
+
         }
     }
 
