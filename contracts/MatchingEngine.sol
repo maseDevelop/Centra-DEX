@@ -7,12 +7,8 @@ pragma solidity >=0.4.22 <0.9.0;
 */
 contract MatchingEngine {
 
-    //BuyOrders Array
-    //SellOrders Array
+    bool private EngineTrading = false;
 
-    //Add buyOrders
-    //Add sellOrders
-
-    //MatchOrders
+    mapping (address => mapping(address => uint256)) orderBook;
 
 }

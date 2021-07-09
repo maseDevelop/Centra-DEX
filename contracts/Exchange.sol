@@ -259,21 +259,3 @@ contract Exchange {
 
     }
 }
-
-
-
-
-
-
-
-
-
-//Maker and Taker
-
-//fillTrade - 
-
-//placeOffer - fillOrkill - PartialOrder
-
-//CancelOrder
-
-//

@@ -267,15 +267,12 @@ contract("Exchange", (accounts) => {
         });
 
         it("make sure order can not be canceled by account who did not make the order", async () =>{
-
             try {
                 const tx = await this.exchange.cancelOffer(3);
                 assert(false,"Was supposed to throw error");
             } catch (error) {
                 assert(true);
             }
-            
-
         });
 
         it("make sure order can be canceled by account who created it", async () =>{
@@ -283,7 +280,6 @@ contract("Exchange", (accounts) => {
 
             const tx = await this.exchange.cancelOffer(3,{from: accounts[1]});
             truffleAssert.eventEmitted(tx,"CanceledOffer");
-
             const orderOutput = await this.exchange.getOrderDetails(3);
 
             assert(orderOutput['sell_amt'] == 0, "sell amount not equal to 0");
