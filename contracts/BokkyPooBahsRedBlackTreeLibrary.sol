@@ -28,7 +28,7 @@ library BokkyPooBahsRedBlackTreeLibrary {
         uint parent;
         uint left;
         uint right;
-        uint price; //trade price
+        uint256 price; //trade price
         bool red;
     }
 
@@ -88,9 +88,10 @@ library BokkyPooBahsRedBlackTreeLibrary {
     function getEmpty() internal pure returns (uint) {
         return EMPTY;
     }
-    function getNode(Tree storage self, uint key) internal view returns (uint _returnKey, uint _parent, uint _left, uint _right, bool _red) {
+    
+    function getNode(Tree storage self, uint key) internal view returns (uint _returnKey, uint _parent, uint _left, uint _right, uint _price, bool _red) {
         require(exists(self, key));
-        return(key, self.nodes[key].parent, self.nodes[key].left, self.nodes[key].right, self.nodes[key].red);
+        return(key, self.nodes[key].parent, self.nodes[key].left, self.nodes[key].right, self.nodes[key].price, self.nodes[key].red);
     }
 
     function insert(Tree storage self, uint price, uint id) internal {

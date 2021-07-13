@@ -10,7 +10,7 @@ import "./BokkyPooBahsRedBlackTreeLibrary.sol";
 */
 contract MatchingEngine {
 
-    bool private EngineTrading = false;
+    bool public EngineTrading = false;
 
     using BokkyPooBahsRedBlackTreeLibrary for BokkyPooBahsRedBlackTreeLibrary.Tree;
 
@@ -82,6 +82,8 @@ contract MatchingEngine {
 
 
     //Write going throgh the orders
+
+    
     
 
 }
