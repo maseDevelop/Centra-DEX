@@ -2,6 +2,9 @@
 
 pragma solidity >=0.4.22 <0.9.0;
 
+//Importing contract
+import "./MatchingEngine.sol";
+
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -13,7 +16,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 /**
 @title Exchange Contract
 */
-contract Exchange {
+contract Exchange is MatchingEngine {
 
     //Importing Libraries
     using SafeMath for uint256;
@@ -31,6 +34,12 @@ contract Exchange {
 
     //State Variables
     Counters.Counter internal currentOrderId;
+
+    //Constructor
+    constructor() {
+        //Increment the counter so it starts at one for the search tree
+        Counters.increment(currentOrderId);
+    } 
 
     //Offer Struct
     struct OfferInfo {
@@ -151,6 +160,8 @@ contract Exchange {
     function makeOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, uint256 _expires) public returns (uint256) {
 
         //Perform Checks for eth
+        require(address(_sell_token) != address(0x0),"This is Ether, Please only sell an ERC20 compliant token");
+        require(address(_buy_token) != address(0x0),"This is Ether, Please only buy an ERC20 compliant token");
         
         //check reentrancy 
 

@@ -1,4 +1,5 @@
 const Exchange = artifacts.require("Exchange");
+const MatchingEngine = artifacts.require("MatchingEngine");
 const Testtoken1 = artifacts.require("Testtoken1");
 const Testtoken2 = artifacts.require("Testtoken2");
 
@@ -154,8 +155,8 @@ contract("Exchange", (accounts) => {
 
             //Buy token2 sell token1 10 for 10
             await this.exchange.makeOffer(10,this.token1.address,10,this.token2.address,90,{from: accounts[0]});
-            const orderOutput = await this.exchange.getOrderDetails(0);
-            assert(orderOutput['id'] == 0,"id not equal to 0");
+            const orderOutput = await this.exchange.getOrderDetails(1);
+            assert(orderOutput['id'] == 1,"id not equal to 1");
             assert(orderOutput['sell_amt'] == 10, "sell amount not equal to 10");
             assert(orderOutput['buy_amt'] == 10, "buy amount not equal to 10");
             assert(orderOutput['sell_token'] == this.token1.address, "token 1 address is not the same");
@@ -168,8 +169,8 @@ contract("Exchange", (accounts) => {
             await this.exchange.depositToken(this.token2.address,10,{from: accounts[1]});
             //Buy token2 sell token1 10 for 10
             await this.exchange.makeOffer(10,this.token2.address,10,this.token1.address,90,{from: accounts[1]});
-            const orderOutput = await this.exchange.getOrderDetails(1);
-            assert(orderOutput['id'] == 1,"id not equal to 0");
+            const orderOutput = await this.exchange.getOrderDetails(2);
+            assert(orderOutput['id'] == 2,"id not equal to 2");
             assert(orderOutput['sell_amt'] == 10, "sell amount not equal to 10");
             assert(orderOutput['buy_amt'] == 10, "buy amount not equal to 10");
             assert(orderOutput['sell_token'] == this.token2.address, "token 1 address is not the same");
@@ -189,9 +190,9 @@ contract("Exchange", (accounts) => {
     
             await this.exchange.depositToken(this.token1.address,10,{from: accounts[2]});
 
-            const tx = await this.exchange.takeOffer(1,10,{from: accounts[2]});
+            const tx = await this.exchange.takeOffer(2,10,{from: accounts[2]});
 
-            const orderOutput = await this.exchange.getOrderDetails(1);
+            const orderOutput = await this.exchange.getOrderDetails(2);
 
             truffleAssert.eventEmitted(tx, 'FilledOffer');
             assert(orderOutput['sell_amt'] == 0, "sell amount not equal to 0");
@@ -222,8 +223,8 @@ contract("Exchange", (accounts) => {
             //Making offer - reverse of previous offer
             await this.exchange.makeOffer(10,this.token2.address,10,this.token1.address,90,{from: accounts[2]});
 
-            const orderOutput = await this.exchange.getOrderDetails(2);
-            assert(orderOutput['id'] == 2,"id not equal to 2");
+            const orderOutput = await this.exchange.getOrderDetails(3);
+            assert(orderOutput['id'] == 3,"id not equal to 3");
             assert(orderOutput['sell_amt'] == 10, "sell amount not equal to 10");
             assert(orderOutput['buy_amt'] == 10, "buy amount not equal to 10");
             assert(orderOutput['sell_token'] == this.token2.address, "token 1 address is not the same");
@@ -233,11 +234,11 @@ contract("Exchange", (accounts) => {
             const bal = await this.exchange.getBalance(this.token1.address,{from: accounts[1]});
             assert(bal > 5,"account[1] dosn't have enough to trade with");
 
-            const tx = await this.exchange.takeOffer(2,5,{from: accounts[1]});
+            const tx = await this.exchange.takeOffer(3,5,{from: accounts[1]});
             truffleAssert.eventEmitted(tx, 'PartialFillOffer');
 
-            const orderOutput1 = await this.exchange.getOrderDetails(2);
-            assert(orderOutput1['id'] == 2,"id not equal to 2");
+            const orderOutput1 = await this.exchange.getOrderDetails(3);
+            assert(orderOutput1['id'] == 3,"id not equal to 3");
             assert(orderOutput1['sell_amt'] == 5, "sell amount not equal to 10");
             assert(orderOutput1['buy_amt'] == 5, "buy amount not equal to 10");
             assert(orderOutput1['sell_token'] == this.token2.address, "token 1 address is not the same");
@@ -247,10 +248,10 @@ contract("Exchange", (accounts) => {
 
         it("complete partial order from previous test", async ()=>{
 
-            const tx = await this.exchange.takeOffer(2,5,{from: accounts[1]});
+            const tx = await this.exchange.takeOffer(3,5,{from: accounts[1]});
             truffleAssert.eventEmitted(tx, 'FilledOffer');
 
-            const orderOutput = await this.exchange.getOrderDetails(2);
+            const orderOutput = await this.exchange.getOrderDetails(3);
 
             assert(orderOutput['sell_amt'] == 0, "sell amount not equal to 0");
             assert(orderOutput['buy_amt'] == 0, "buy amount not equal to 0");
@@ -268,7 +269,7 @@ contract("Exchange", (accounts) => {
 
         it("make sure order can not be canceled by account who did not make the order", async () =>{
             try {
-                const tx = await this.exchange.cancelOffer(3);
+                const tx = await this.exchange.cancelOffer(4);
                 assert(false,"Was supposed to throw error");
             } catch (error) {
                 assert(true);
@@ -278,9 +279,9 @@ contract("Exchange", (accounts) => {
         it("make sure order can be canceled by account who created it", async () =>{
             
 
-            const tx = await this.exchange.cancelOffer(3,{from: accounts[1]});
+            const tx = await this.exchange.cancelOffer(4,{from: accounts[1]});
             truffleAssert.eventEmitted(tx,"CanceledOffer");
-            const orderOutput = await this.exchange.getOrderDetails(3);
+            const orderOutput = await this.exchange.getOrderDetails(4);
 
             assert(orderOutput['sell_amt'] == 0, "sell amount not equal to 0");
             assert(orderOutput['buy_amt'] == 0, "buy amount not equal to 0");
@@ -289,3 +290,4 @@ contract("Exchange", (accounts) => {
 
     });
 });
+
