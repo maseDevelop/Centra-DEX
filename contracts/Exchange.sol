@@ -21,16 +21,16 @@ contract Exchange {
     using Counters for Counters.Counter;
 
     //Seen Nonces - to prevent replay attacks
-    //mapping(address => mapping(uint256 => bool)) private seenNonces;
+    //mapping(address => mapping(uint256 => bool)) internal  seenNonces;
 
     //Storage
-    mapping(address => mapping(address => uint256)) private usertokens; //Maps token balances for an account
+    mapping(address => mapping(address => uint256)) internal usertokens; //Maps token balances for an account
 
     //Order Mappings
     mapping(uint256 => OfferInfo) public currentOffers;
 
     //State Variables
-    Counters.Counter private currentOrderId;
+    Counters.Counter internal currentOrderId;
 
     //Offer Struct
     struct OfferInfo {
@@ -42,7 +42,12 @@ contract Exchange {
         address  owner;    // <-- who created the offer
         uint256  expires;    // <-- when the offer expires
         uint256  timestamp; // <-- when offer was created
-        bool     orderFilled; // <-- false as default true when order is canceled or filled
+
+        uint256 left;
+        uint256 right;
+
+        bool orderFilled; // <-- false as default true when order is canceled or filled
+        
     }
 
     //Events
@@ -54,7 +59,7 @@ contract Exchange {
     event CanceledOffer(uint sell_amt, address sell_token, uint buy_amt, address buy_token, address owner, uint256 expires, uint256 timeStamp);
 
     //Modifiers
-    bool private mutex = false;//global mutex variable
+    bool internal mutex = false;//global mutex variable
     
     /**
     @dev Stops recusive function calls - prevents re-entrancy attack
