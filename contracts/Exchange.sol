@@ -42,10 +42,6 @@ contract Exchange {
         address  owner;    // <-- who created the offer
         uint256  expires;    // <-- when the offer expires
         uint256  timestamp; // <-- when offer was created
-
-        uint256 left;
-        uint256 right;
-
         bool orderFilled; // <-- false as default true when order is canceled or filled
         
     }
