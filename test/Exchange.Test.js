@@ -60,9 +60,10 @@ contract("Exchange", (accounts) => {
 
     this.token1 = undefined;
     this.exchange = undefined;
-    this.Testtoken2 = undefined;
+    this.token2 = undefined;
 
     before(async () => {
+
     //Creating a token1 to use in the exchange
     this.token1 = await Testtoken1.deployed();
     this.token2 = await Testtoken2.deployed();
