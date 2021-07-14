@@ -39,11 +39,15 @@ library BokkyPooBahsRedBlackTreeLibrary {
 
     uint private constant EMPTY = 0;
 
+
+
     function first(Tree storage self) internal view returns (uint _key) {
         _key = self.root;
         if (_key != EMPTY) {
             while (self.nodes[_key].left != EMPTY) {
+                
                 _key = self.nodes[_key].left;
+
             }
         }
     }
@@ -90,9 +94,15 @@ library BokkyPooBahsRedBlackTreeLibrary {
     }
     
     function getNode(Tree storage self, uint key) internal view returns (uint _returnKey, uint _parent, uint _left, uint _right, uint _price, bool _red) {
-        require(exists(self, key));
+        require(exists(self, key),"Key does not exist");
         return(key, self.nodes[key].parent, self.nodes[key].left, self.nodes[key].right, self.nodes[key].price, self.nodes[key].red);
     }
+
+    event leftNode(uint priceAtNode,uint price);
+    event rightNode(uint priceAtNode,uint price);
+    event currentNodePrice(uint priceAtNode,uint price);
+    event rootID(uint id);
+    event addedNode(uint _parent, uint _left, uint _right, uint _price, bool _red);
 
     function insert(Tree storage self, uint price, uint id) internal {
 
@@ -100,8 +110,9 @@ library BokkyPooBahsRedBlackTreeLibrary {
         require(!exists(self, id));
 
         uint currentID = self.root;
+        uint cursor = EMPTY;
+        emit rootID(currentID);
         uint priceAtNode = self.nodes[self.root].price;
-        bool rightSide = true;
 
         //Current ID not equal to 0
         while (currentID != EMPTY) {
@@ -109,27 +120,31 @@ library BokkyPooBahsRedBlackTreeLibrary {
             //Get the price at the current node
             priceAtNode = self.nodes[currentID].price;
 
+            cursor = currentID;
+
             //Is price specified in the function arguments less than price at current node
             if (price < priceAtNode) {
-                rightSide = false;
                 currentID = self.nodes[currentID].left;
+                emit leftNode(priceAtNode, price);
             } else {
                 //Price specified is greater than the one at the current node
                 currentID = self.nodes[currentID].right;
+                emit rightNode(priceAtNode, price);
             }
         }
 
         //Creating a new node
-        self.nodes[id] = Node({parent: currentID, left: EMPTY, right: EMPTY, price: price, red: true});
+        self.nodes[id] = Node({parent: cursor, left: EMPTY, right: EMPTY, price: price, red: true});
 
         //Setting parent node to the node just created
-        if (currentID == EMPTY) {
+        if (cursor == EMPTY) {
             self.root = id;
-        } else if (rightSide) {
-            self.nodes[currentID].left = id;
+        } else if (price < self.nodes[cursor].price) {
+            self.nodes[cursor].left = id;
         } else {
-            self.nodes[currentID].right = id;
+            self.nodes[cursor].right = id;
         }
+
 
         //Rotating the tree
         insertFixup(self, id);
