@@ -77,6 +77,12 @@ contract("TestBokkyPooBahsRedBlackTreeRaw", (accounts) => {
             const out4 = await this.tree.next(4);
             const out5 = await this.tree.next(5);
 
+            console.log(await this.tree.getNode(1));
+            console.log(await this.tree.getNode(2));
+            console.log(await this.tree.getNode(3));
+            console.log(await this.tree.getNode(4));
+            console.log(await this.tree.getNode(5));
+
             //2 -> 1 -> 3
             assert.equal(out1.toNumber(),1,"value is not ID 1");
             assert.equal(out2.toNumber(),5,"value is not ID 3");
@@ -90,6 +96,40 @@ contract("TestBokkyPooBahsRedBlackTreeRaw", (accounts) => {
 
     describe("Testing removing", () =>{
 
+        it("Checking an ID can be removed properly", async () =>{
+            try {
+                await this.tree.remove(3);//4
+                const out = await this.tree.getNode(3);
+                assert(false,"ID 4 was not removed from the tree")
+            } catch (error) {
+                assert(true);
+            }
+        });
+
+        it("checking that the structure of the tree is still good after removal", async ()=>{
+
+            /*const out1 = await this.tree.getNode(1);
+            const out2 = await this.tree.getNode(2);
+            const out3 = await this.tree.getNode(4); 
+            const out4 = await this.tree.getNode(5);
+
+            console.log(out1);
+            console.log(out2);
+            console.log(out3);
+            console.log(out4);*/
+
+            const out1 = await this.tree.next(2);
+            const out2 = await this.tree.next(1);
+            const out3 = await this.tree.next(5);  
+            const out4 = await this.tree.next(4);
+
+            assert.equal(out1.toNumber(),1,"value is not ID 1");
+            assert.equal(out2.toNumber(),5,"value is not ID 3");
+            assert.equal(out3.toNumber(),4,"value is not ID 4");
+            assert.equal(out4.toNumber(),0,"value is not zero"); //Because it last should be zero
+   
+
+        });
 
     })
 
