@@ -77,11 +77,11 @@ contract("TestBokkyPooBahsRedBlackTreeRaw", (accounts) => {
             const out4 = await this.tree.next(4);
             const out5 = await this.tree.next(5);
 
-            console.log(await this.tree.getNode(1));
+            /*console.log(await this.tree.getNode(1));
             console.log(await this.tree.getNode(2));
             console.log(await this.tree.getNode(3));
             console.log(await this.tree.getNode(4));
-            console.log(await this.tree.getNode(5));
+            console.log(await this.tree.getNode(5));*/
 
             //2 -> 1 -> 3
             assert.equal(out1.toNumber(),1,"value is not ID 1");
@@ -131,7 +131,89 @@ contract("TestBokkyPooBahsRedBlackTreeRaw", (accounts) => {
 
         });
 
-    })
+        it("Removing the root value to see if the price order stays the same", async ()=>{
+
+            await this.tree.remove(1);
+     
+            /*console.log(await this.tree.getNode(2));
+            console.log(await this.tree.getNode(4));
+            console.log(await this.tree.getNode(5));*/
+
+            //Checking if the order stays the same
+            const out1 = await this.tree.next(2);
+            const out3 = await this.tree.next(5);  
+            const out4 = await this.tree.next(4);
+
+            assert.equal(out1.toNumber(),5,"value is not ID 5");
+            assert.equal(out3.toNumber(),4,"value is not ID 4");
+            assert.equal(out4.toNumber(),0,"value is not zero"); //Because it last should be zero
+
+        });
+
+        it("Remove all values from the tree and check it the default value is reset", async () =>{
+            //Removing all values from the tree
+            await this.tree.remove(2);
+            await this.tree.remove(5);
+            await this.tree.remove(4);
+
+            //Root value should be zero
+            const rootValue = await this.tree.root();
+            assert.equal(rootValue.toNumber(), 0);
+        });
+
+    });
+
+    describe("Large Scale add and remove to a tree", () => {
+
+        it("Adding 20 orders into the tree and checking that they are sorted", async () =>{
+
+            const insertPrices = [1,5,7,6,12,43,64,32,22,1,22,33,7,3,2,78,5,66,15,14];
+
+            insertPrices.forEach(async (price,i) =>{
+                //Adding the insertprice and ID into the tree
+                //console.log(`Price: ${price} ID: ${i+1}`);
+                await this.tree.insert(price,i+1);
+            });
+
+            //making sure that it is all in order
+            let out = [];
+
+            //Getting the smallest value
+            let cursor = await this.tree.first();
+          
+            while(cursor != 0){
+                cursor = await this.tree.next(cursor);
+                out.push(cursor.toNumber());
+            }
+
+
+            /*out.forEach((item)=>{
+                console.log(item);
+            });*/
+
+            assert.equal(out[0],10);
+            assert.equal(out[1],15);
+            assert.equal(out[2],14);
+            assert.equal(out[3],2);
+            assert.equal(out[4],17);
+            assert.equal(out[5],4);
+            assert.equal(out[6],3);
+            assert.equal(out[7],13);
+            assert.equal(out[8],5);
+            assert.equal(out[9],20);
+            assert.equal(out[10],19);
+            assert.equal(out[11],9);
+            assert.equal(out[12],11);
+            assert.equal(out[13],8);
+            assert.equal(out[14],12);
+            assert.equal(out[15],6);
+            assert.equal(out[16],7);
+            assert.equal(out[17],18);
+            assert.equal(out[18],16);
+            assert.equal(out[19],0);//Has to be zero as it is the end
+        });
+
+    });
 
 });
 
