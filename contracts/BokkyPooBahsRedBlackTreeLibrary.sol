@@ -151,8 +151,8 @@ library BokkyPooBahsRedBlackTreeLibrary {
     }
 
     function remove(Tree storage self, uint key) internal {
-        require(key != EMPTY);
-        require(exists(self, key));
+        require(key != EMPTY,"Remove: the key is 0");
+        require(exists(self, key),"The key does not exist");
         uint probe;
         uint cursor;
         if (self.nodes[key].left == EMPTY || self.nodes[key].right == EMPTY) {

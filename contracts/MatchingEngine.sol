@@ -61,7 +61,6 @@ contract MatchingEngine {
         return orderBook[_sell_token][_buy_token].last();
     }
 
-
     /**
     Changes the price of a node in the tree
     @param _price the new price for the token swap
@@ -85,11 +84,15 @@ contract MatchingEngine {
     @param _buy_token the address of the buy token
     @return price the price for that order
     */
-    function getNode(uint _id,address _sell_token, address _buy_token) public view returns (uint price) {
+    function getNode(uint _id, address _sell_token, address _buy_token) public view returns (uint price) {
         if (orderBook[_sell_token][_buy_token].exists(_id)) {
             (,,,,price,) = orderBook[_sell_token][_buy_token].getNode(_id);
             return price;
         }
+    }
+
+    function autoMatchOffer() public returns (bool){
+
     }
 
 
