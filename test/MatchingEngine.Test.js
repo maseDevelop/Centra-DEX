@@ -186,7 +186,6 @@ contract("TestBokkyPooBahsRedBlackTreeRaw", (accounts) => {
                 out.push(cursor.toNumber());
             }
 
-
             /*out.forEach((item)=>{
                 console.log(item);
             });*/
@@ -213,8 +212,83 @@ contract("TestBokkyPooBahsRedBlackTreeRaw", (accounts) => {
             assert.equal(out[19],0);//Has to be zero as it is the end
         });
 
-    });
+        it("remove some of the Ids and make sure the order is still alright", async () =>{
 
+            const removeIds = [7,8,13,16,14,2,1];
+
+            //Bulk removing IDs
+            removeIds.forEach(async (id) => {
+                await this.tree.remove(id);
+            });
+
+            //making sure that it is all in order
+            let out = [];
+
+            //Getting the smallest value
+            let cursor = await this.tree.first();
+           
+            while(cursor != 0){
+                cursor = await this.tree.next(cursor);
+                out.push(cursor.toNumber());
+            }
+            
+            /*out.forEach( (item) =>{
+                console.log(item);
+            });*/
+
+            assert.equal(out[0],15);
+            assert.equal(out[1],17);
+            assert.equal(out[2],4);
+            assert.equal(out[3],3);
+            assert.equal(out[4],5);
+            assert.equal(out[5],20);
+            assert.equal(out[6],19);
+            assert.equal(out[7],9);
+            assert.equal(out[8],11);
+            assert.equal(out[9],12);
+            assert.equal(out[10],6);
+            assert.equal(out[11],18);
+            assert.equal(out[12],0);//Has to be zero as it is the end
+
+        });
+
+        it("Trying to update a value in the tree with a differnt price and the same ID", async ()=>{
+
+            await this.tree.remove(9);
+            
+            //Updating price
+            await this.tree.insert(13,9);
+
+            //making sure that it is all in order
+            let out = [];
+
+            //Getting the smallest value
+            let cursor = await this.tree.first();
+           
+            while(cursor != 0){
+                cursor = await this.tree.next(cursor);
+                out.push(cursor.toNumber());
+            }
+            
+            /*out.forEach( (item) =>{
+                console.log(item);
+            });*/
+
+            assert.equal(out[0],15);
+            assert.equal(out[1],17);
+            assert.equal(out[2],4);
+            assert.equal(out[3],3);
+            assert.equal(out[4],5);
+            assert.equal(out[5],9);
+            assert.equal(out[6],20);
+            assert.equal(out[7],19);
+            assert.equal(out[8],11);
+            assert.equal(out[9],12);
+            assert.equal(out[10],6);
+            assert.equal(out[11],18);
+            assert.equal(out[12],0);//Has to be zero as it is the end
+        })
+    });
 });
 
 contract("MatchingEngine", (accounts) => {
@@ -247,7 +321,7 @@ contract("MatchingEngine", (accounts) => {
 
         it("making sure that there are no orders active", async () =>{
             const out = await this.matchingEngine.getFirstOffer(this.token1.address, this.token2.address)
-            assert(out,0,"The orders are not intialised to zero")
+            assert(out,0,"The orders are not intialised to zero");
         });
 
         it("making sure that an order shows up when inserted into the tree", async () =>{
@@ -270,12 +344,29 @@ contract("MatchingEngine", (accounts) => {
         });
 
         it("making sure that an order shows as the biggest dearest order has the right id", async () =>{
-            //await this.matchingEngine.insert(6, 3, this.token1.address, this.token2.address);
             const out = await this.matchingEngine.getLastOffer(this.token1.address, this.token2.address);
             const out1 = await this.matchingEngine.getFirstOffer(this.token1.address, this.token2.address);
             //Should still be the same ID
             assert.strictEqual(out.toNumber(),3, "Wrong ID is outputed for highest price ID");
             assert.strictEqual(out1.toNumber(),2, "Wrong ID is outputed for lowest price ID");
+        });
+
+    });
+
+    describe("Testing Getting a specific order", async () =>{
+
+        it("Get the right price from a specified order", async () =>{
+
+
+
+            const price1 = await this.matchingEngine.getNode(3,this.token1.address, this.token2.address);
+            assert.equal(price1.toNumber(),6,"Wrong price returned");
+
+            const price2 = await this.matchingEngine.getNode(2,this.token1.address, this.token2.address);
+            assert.equal(price2.toNumber(),4,"Wrong price returned");
+
+            const price3 = await this.matchingEngine.getNode(1,this.token1.address, this.token2.address);
+            assert.equal(price3.toNumber(),5,"Wrong price returned");
         });
 
     });
