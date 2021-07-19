@@ -187,7 +187,18 @@ contract MatchingEngine is Exchange {
         }
         else{
             
-        }
+            //Cancel the order and remove it from the the list - First get the order
+            OfferInfo memory offer = currentOffers[_order_id];
 
+            address _sell_token = offer.sell_token; 
+            address _buy_token = offer.buy_token;
+
+            //Removing from the order book
+            orderBook[_sell_token][_buy_token].remove(_order_id);
+
+            //Removing orders from offer mapping
+            super.cancelOffer(_order_id);
+
+        }
     }
 }
