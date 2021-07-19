@@ -113,8 +113,8 @@ contract MatchingEngine is Exchange {
         _id = super.makeOffer(_sell_amt,_sell_token,_buy_amt,_buy_token,_expires);
         uint _price;
         uint _current_id;
-        uint _highest_taker_buy_price;
-        uint _highest_taker_sell_price;
+        //uint _highest_taker_buy_price;
+        uint _lowest_price_t_sell_price;
         BokkyPooBahsRedBlackTreeLibrary.Tree storage _tree;
         bool _match_found = false;
         OfferInfo memory _current_offer;
@@ -135,27 +135,32 @@ contract MatchingEngine is Exchange {
 
                 //Work out how much the caller (now the taker is willing to pay)
                 //_highest_taker_buy_price = _sell_amt.div(_buy_amt);
-                _highest_taker_sell_price = _buy_amt.div(_sell_amt);
+                _lowest_price_t_sell_price = _buy_amt.div(_sell_amt);
 
                 //Get the first lowest order and see if you can take it - The last order in the tree highest price
                 _tree = orderBook[_buy_token][_sell_token];
 
-                //Get the current root id
-                _current_id = _tree.root;
+                //Get the current cheapest offer
+                _current_id = _tree.first();
 
                 //search for a price that will matching what the maker wants
-                while(!_match_found){
+                while(!_match_found || _current_id != 0){
 
                     //Getting price from that node
                     (,,,,_price,) = _tree.getNode(_current_id);
 
-                    //compare pricing 
-                    if(_highest_taker_sell_price >= _price){
-                        
-                        //Order can be taken - Take as much of the order as can be taken
-                        takeOffer();
+                    //compare pricing - Traversing tree
+                    
+
+                    //The highest value the maker is williing to bay for the buy_token
+                    if(_lowest_price_t_sell_price >= _price){
+
+
+
 
                     }
+
+                    
 
                     //Move on or you have to next order
 
