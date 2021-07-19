@@ -97,15 +97,6 @@ contract MatchingEngine is Exchange {
         }
     }
 
-    /*function autoMatchOffer(uint _id, address _sell_token, address _buy_token) public returns (bool){
-
-        //What type of order is it 
-
-        //
-
-    }*/
-
-
     //Overwritten Functions
 
     /**
@@ -150,10 +141,7 @@ contract MatchingEngine is Exchange {
 
                 insert(_price, _id, _sell_token, _buy_token);
             }
-
         }
- 
-
     }
 
     /**
@@ -182,13 +170,12 @@ contract MatchingEngine is Exchange {
             uint _sell_amt = offer.sell_amt;
             uint _buy_amt = offer.buy_amt;
 
+            //calculating new price
             uint _price = _sell_amt.div(_buy_amt);
 
             //Inserting the order back into the tree - after the order should be updated
             orderBook[_sell_token][_buy_token].insert(_price,_order_id);
-
         }
-
     }
 
     /**
