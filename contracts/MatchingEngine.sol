@@ -163,13 +163,30 @@ contract MatchingEngine is Exchange {
      */
     function takeOffer(uint _order_id, uint _quantity) public override preventRecursion {
 
+        //Calling base function
+        super.takeOffer(_order_id,_quantity);
+
         //Only use overwritten function if matching engine is turned on
-        if(!EngineTrading){
-            //Calling base function
-            super.takeOffer(_order_id,_quantity);
-        }
-        else{
-            
+        if(EngineTrading){
+
+            //Get the order details
+            OfferInfo memory offer = currentOffers[_order_id];
+
+            address _sell_token = offer.sell_token; 
+            address _buy_token = offer.buy_token;
+
+            //Update the order in the order book - first remove
+            //Removing from the order book
+            orderBook[_sell_token][_buy_token].remove(_order_id);
+
+            uint _sell_amt = offer.sell_amt;
+            uint _buy_amt = offer.buy_amt;
+
+            uint _price = _sell_amt.div(_buy_amt);
+
+            //Inserting the order back into the tree - after the order should be updated
+            orderBook[_sell_token][_buy_token].insert(_price,_order_id);
+
         }
 
     }
