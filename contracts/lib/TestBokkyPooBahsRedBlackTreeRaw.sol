@@ -48,6 +48,10 @@ contract TestBokkyPooBahsRedBlackTreeRaw {
         (key, parent, left, right, price, red) = tree.getNode(_key);
     }
 
+    function getBestKey(uint _min) public view returns (uint _key) {
+        _key = tree.getBestKey(_min);
+    }
+
     function insert(uint price, uint id) public {
         tree.insert(price, id);
         // emit Log("insert", _key, 0);

@@ -39,7 +39,18 @@ library BokkyPooBahsRedBlackTreeLibrary {
 
     uint private constant EMPTY = 0;
 
+    function getBestKey(Tree storage self,uint _min) internal view returns (uint _key){
 
+        _key = self.root;
+        if (_key != EMPTY) {
+            while (self.nodes[_key].left != EMPTY && self.nodes[_key].left >= _min) {
+                
+                _key = self.nodes[_key].left;
+
+            }
+        }
+
+    }
 
     function first(Tree storage self) internal view returns (uint _key) {
         _key = self.root;
