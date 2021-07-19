@@ -112,8 +112,14 @@ contract MatchingEngine is Exchange {
         //Calling base function - Creating the order
         _id = super.makeOffer(_sell_amt,_sell_token,_buy_amt,_buy_token,_expires);
         uint _price;
+        uint _current_id;
         uint _highest_taker_buy_price;
+        uint _highest_taker_sell_price;
         BokkyPooBahsRedBlackTreeLibrary.Tree storage _tree;
+        bool _match_found = false;
+        OfferInfo memory _current_offer;
+    
+
 
         //Only use overwritten function if matching engine is turned on
         if(EngineTrading){
@@ -128,11 +134,33 @@ contract MatchingEngine is Exchange {
                 //Get the first order to look at it
 
                 //Work out how much the caller (now the taker is willing to pay)
-                _highest_taker_buy_price = _sell_amt.div(_buy_amt);
+                //_highest_taker_buy_price = _sell_amt.div(_buy_amt);
+                _highest_taker_sell_price = _buy_amt.div(_sell_amt);
 
                 //Get the first lowest order and see if you can take it - The last order in the tree highest price
                 _tree = orderBook[_buy_token][_sell_token];
-                
+
+                //Get the current root id
+                _current_id = _tree.root;
+
+                //search for a price that will matching what the maker wants
+                while(!_match_found){
+
+                    //Getting price from that node
+                    (,,,,_price,) = _tree.getNode(_current_id);
+
+                    //compare pricing 
+                    if(_highest_taker_sell_price >= _price){
+                        
+                        //Order can be taken - Take as much of the order as can be taken
+                        takeOffer();
+
+                    }
+
+                    //Move on or you have to next order
+
+                    //Stop from next order
+                }
             }
             else{
                 //If there are currently no orders to be taken just add the order into the orderbook
