@@ -3,7 +3,7 @@
 pragma solidity >=0.4.22 <0.9.0;
 
 //Importing contract
-import "./MatchingEngine.sol";
+//import "./MatchingEngine.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -16,7 +16,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 /**
 @title Exchange Contract
 */
-contract Exchange is MatchingEngine {
+contract Exchange {
 
     //Importing Libraries
     using SafeMath for uint256;
@@ -157,7 +157,7 @@ contract Exchange is MatchingEngine {
     @param _buy_token The address of the tokens you wan to buy
     @param _expires when the order expires
      */
-    function makeOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, uint256 _expires) public returns (uint256) {
+    function makeOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, uint256 _expires) public virtual returns (uint256) {
 
         //Perform Checks for eth
         require(address(_sell_token) != address(0x0),"This is Ether, Please only sell an ERC20 compliant token");
@@ -198,7 +198,7 @@ contract Exchange is MatchingEngine {
     @param _order_id The id of the order you want to fill
     @param _quantity The amount of the order you want to fill
      */
-    function takeOffer(uint _order_id, uint _quantity) public preventRecursion {
+    function takeOffer(uint _order_id, uint _quantity) public virtual preventRecursion {
 
         //Getting current offer
         OfferInfo storage currentOffer = currentOffers[_order_id];
@@ -256,7 +256,7 @@ contract Exchange is MatchingEngine {
     //Cancels the current order
     @param _order_id the id of the order to cancel - can only cancel if you are owner of the order
      */
-    function cancelOffer(uint _order_id) public orderActive(_order_id) {
+    function cancelOffer(uint _order_id) public virtual orderActive(_order_id) {
 
         OfferInfo memory currentOffer = currentOffers[_order_id];
 

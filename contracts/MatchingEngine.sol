@@ -2,13 +2,16 @@
 
 pragma solidity >=0.4.22 <0.9.0;
 
+//Importing contracts
+import "./Exchange.sol";
+
 //Import RBTree library
 import "./BokkyPooBahsRedBlackTreeLibrary.sol";
 
 /**
 @title Matching Engine Contract
 */
-contract MatchingEngine {
+contract MatchingEngine is Exchange {
 
     bool public EngineTrading = false;
 
@@ -91,10 +94,71 @@ contract MatchingEngine {
         }
     }
 
-    function autoMatchOffer() public returns (bool){
+    function autoMatchOffer(address _sell_token, address _buy_token) public returns (bool){
+
+        //What type of order is it 
+
+        //
 
     }
 
 
-    //Write going throgh the orders
+    //Overwritten Functions
+
+    /**
+    //Make offer for trade - Override
+    @param _sell_amt The amount of the token you want to sell
+    @param _sell_token The address of the token you want to sell
+    @param _buy_amt The amount of tokens you want to buy for
+    @param _buy_token The address of the tokens you wan to buy
+    @param _expires when the order expires
+     */
+    function makeOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, uint256 _expires) public override returns (uint256) {
+    
+        //Only use overwritten function if matching engine is turned on
+        if(!EngineTrading){
+            //Calling base function
+            super.makeOffer(_sell_amt,_sell_token,_buy_amt,_buy_token,_expires);
+        }
+        else{
+
+        }
+
+
+    }
+
+    /**
+    //Takes a current offer - Override
+    @param _order_id The id of the order you want to fill
+    @param _quantity The amount of the order you want to fill
+     */
+    function takeOffer(uint _order_id, uint _quantity) public override preventRecursion {
+
+        //Only use overwritten function if matching engine is turned on
+        if(!EngineTrading){
+            //Calling base function
+            super.takeOffer(_order_id,_quantity);
+        }
+        else{
+            
+        }
+
+    }
+
+    /**
+    //Cancels the current order - Override
+    @param _order_id the id of the order to cancel - can only cancel if you are owner of the order
+     */
+    function cancelOffer(uint _order_id) public override orderActive(_order_id) {
+    
+        //Only use overwritten function if matching engine is turned on
+        if(!EngineTrading){
+            //Calling base function
+            super.cancelOffer(_order_id);
+        }
+        else{
+            
+        }
+
+    }
 }
