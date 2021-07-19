@@ -3,7 +3,7 @@
 pragma solidity >=0.4.22 <0.9.0;
 
 //Import RBTree library
-import "../contracts/BokkyPooBahsRedBlackTreeLibrary.sol";
+import "./BokkyPooBahsRedBlackTreeLibrary.sol";
 
 // ----------------------------------------------------------------------------
 // BokkyPooBah's Red-Black Tree Library v1.0-pre-release-a - Contract for testing

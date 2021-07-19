@@ -6,7 +6,7 @@ pragma solidity >=0.4.22 <0.9.0;
 import "./Exchange.sol";
 
 //Import RBTree library
-import "./BokkyPooBahsRedBlackTreeLibrary.sol";
+import "./lib/BokkyPooBahsRedBlackTreeLibrary.sol";
 
 /**
 @title Matching Engine Contract
@@ -94,13 +94,13 @@ contract MatchingEngine is Exchange {
         }
     }
 
-    function autoMatchOffer(address _sell_token, address _buy_token) public returns (bool){
+    /*function autoMatchOffer(uint _id, address _sell_token, address _buy_token) public returns (bool){
 
         //What type of order is it 
 
         //
 
-    }
+    }*/
 
 
     //Overwritten Functions
@@ -121,6 +121,13 @@ contract MatchingEngine is Exchange {
             super.makeOffer(_sell_amt,_sell_token,_buy_amt,_buy_token,_expires);
         }
         else{
+
+            //Check that there are actually orders in the book - if not in the book just add to the book
+
+
+
+            //
+
 
         }
 

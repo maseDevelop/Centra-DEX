@@ -2,7 +2,7 @@ var Exchange = artifacts.require("../contracts/Exchange.sol");
 var MatchingEngine = artifacts.require("../contracts/MatchingEngine.sol");
 var Testtoken1 = artifacts.require("../contracts/Testtoken1.sol");
 var Testtoken2 = artifacts.require("../contracts/Testtoken2.sol");
-var TestBokkyPooBahsRedBlackTreeRaw = artifacts.require("../contracts/TestBokkyPooBahsRedBlackTreeRaw.sol");
+var TestBokkyPooBahsRedBlackTreeRaw = artifacts.require("../contracts/lib/TestBokkyPooBahsRedBlackTreeRaw.sol");
 
 module.exports = function(deployer) {
  deployer.deploy(Exchange);
