@@ -190,8 +190,8 @@ contract Exchange {
 
     }
 
-    event TradeAmount(uint256 tradeAmount);
-    event AddressGet(address add);
+    //event TradeAmount(uint256 tradeAmount);
+    //event AddressGet(address add);
 
     /**
     //Takes a current offer
