@@ -235,8 +235,8 @@ contract Exchange {
         usertokens[msg.sender][currentOffer.sell_token] = usertokens[msg.sender][currentOffer.sell_token].add(_quantity);
 
         //Updating order information
-        currentOffer.buy_amt = currentOffer.buy_amt.sub(_quantity);
-        currentOffer.sell_amt = currentOffer.sell_amt.sub(tradeAmount);
+        currentOffer.buy_amt = currentOffer.buy_amt.sub(tradeAmount);
+        currentOffer.sell_amt = currentOffer.sell_amt.sub(_quantity);
 
         //transfer tokens on the coin contract??
 
