@@ -111,18 +111,16 @@ contract MatchingEngine is Exchange {
     
         //Calling base function - Creating the order
         _id = super.makeOffer(_sell_amt,_sell_token,_buy_amt,_buy_token,_expires);
-        uint _price;
-        uint _current_id;
-        //uint _highest_taker_buy_price;
-        uint _lowest_price_t_sell_price;
-        BokkyPooBahsRedBlackTreeLibrary.Tree storage _tree;
-        bool _match_found = false;
-        OfferInfo memory _current_offer;
-    
-
 
         //Only use overwritten function if matching engine is turned on
         if(EngineTrading){
+
+            uint _price;
+            uint _current_id;
+            //uint _highest_taker_buy_price;
+            uint _lowest_price_t_sell_price;
+            BokkyPooBahsRedBlackTreeLibrary.Tree storage _tree;
+            bool _match_found = false;
 
             //Check that there are actually orders in the book - if not in the book just add to the book
             //Making sure you swap sell and buy as to get both parts of the order book -> What someone is looking to sell
@@ -135,43 +133,41 @@ contract MatchingEngine is Exchange {
 
                 //Work out how much the caller (now the taker is willing to pay)
                 //_highest_taker_buy_price = _sell_amt.div(_buy_amt);
-                _lowest_price_t_sell_price = _buy_amt.div(_sell_amt);
+                _lowest_price_t_sell_price = _buy_amt.div(_sell_amt);//Make sure this calculation is correct
 
                 //Get the first lowest order and see if you can take it - The last order in the tree highest price
                 _tree = orderBook[_buy_token][_sell_token];
 
-                //Get the current cheapest offer
-                _current_id = _tree.first();
+                //Get the root id
+                _current_id = _tree.root;
 
-                //search for a price that will matching what the maker wants
+                //search the lowest price that matches the buying conditions
                 while(!_match_found || _current_id != 0){
-
                     //Getting price from that node
                     (,,,,_price,) = _tree.getNode(_current_id);
 
-                    //compare pricing - Traversing tree
-                    
-
-                    //The highest value the maker is williing to bay for the buy_token
-                    if(_lowest_price_t_sell_price >= _price){
-
-
-
-
+                    //Going down the tree to get the lowest price
+                    if(_price >= _lowest_price_t_sell_price){
+                        _current_id = _tree.prev(_current_id);
+                    }else{
+                        _match_found = true;
                     }
-
-                    
-
-                    //Move on or you have to next order
-
-                    //Stop from next order
                 }
+
+                //After cheapest offer has been found - take up the orders
+                //Filling the callers buy_amt
+                while( || _current_id != 0){
+
+                    //How much the caller can take of the first order
+
+
+                }
+
             }
             else{
                 //If there are currently no orders to be taken just add the order into the orderbook
                 _price = _sell_amt.div(_buy_amt);
                 //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
-
                 insert(_price, _id, _sell_token, _buy_token);
             }
         }
@@ -182,7 +178,7 @@ contract MatchingEngine is Exchange {
     @param _order_id The id of the order you want to fill
     @param _quantity The amount of the order you want to fill
      */
-    function takeOffer(uint _order_id, uint _quantity) public override preventRecursion {
+    /*function takeOffer(uint _order_id, uint _quantity) public override preventRecursion {
 
         //Calling base function
         super.takeOffer(_order_id,_quantity);
@@ -209,7 +205,7 @@ contract MatchingEngine is Exchange {
             //Inserting the order back into the tree - after the order should be updated
             orderBook[_sell_token][_buy_token].insert(_price,_order_id);
         }
-    }
+    }*/
 
     /**
     //Cancels the current order - Override
