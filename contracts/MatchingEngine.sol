@@ -112,7 +112,7 @@ contract MatchingEngine is Exchange {
             uint _taker_sell_token_amt;
             BokkyPooBahsRedBlackTreeLibrary.Tree storage _tree;
             bool _match_found = false;
-            bool _order_filled = false;   
+
                          
             
 
