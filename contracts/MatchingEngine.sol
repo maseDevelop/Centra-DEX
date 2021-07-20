@@ -178,7 +178,7 @@ contract MatchingEngine is Exchange {
     @param _order_id The id of the order you want to fill
     @param _quantity The amount of the order you want to fill
      */
-    /*function takeOffer(uint _order_id, uint _quantity) public override preventRecursion {
+    function takeOffer(uint _order_id, uint _quantity) public override preventRecursion {
 
         //Calling base function
         super.takeOffer(_order_id,_quantity);
@@ -205,7 +205,7 @@ contract MatchingEngine is Exchange {
             //Inserting the order back into the tree - after the order should be updated
             orderBook[_sell_token][_buy_token].insert(_price,_order_id);
         }
-    }*/
+    }
 
     /**
     //Cancels the current order - Override
