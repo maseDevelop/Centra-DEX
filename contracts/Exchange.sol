@@ -222,6 +222,9 @@ contract Exchange {
 
         //Make sure trade amount is valid
         require(tradeAmount >= 0, "Trade amount is not valid");
+
+        //Make sure it is above or equal to price set in the order
+        require(tradeAmount > currentOffer.buy_amt, "Price offered needs to be greater than or equal to that stated in the offer you are trying to fill");
         
         //Renstate the owners ablity to trade funds that they put up for sale - by how much the owner is willig to pay
         usertokens[currentOffer.owner][currentOffer.sell_token] = usertokens[currentOffer.owner][currentOffer.sell_token].add(_quantity);

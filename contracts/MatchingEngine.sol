@@ -68,22 +68,6 @@ contract MatchingEngine is Exchange {
     }
 
     /**
-    Changes the price of a node in the tree
-    @param _price the new price for the token swap
-    @param _id the id of the order you want to change
-    @param _sell_token the address of the sell token
-    @param _buy_token the address of the buy token
-    */
-    function changeOrderPrice(uint _price, uint _id, address _sell_token, address _buy_token) public {
-        
-        //Remove current order
-        orderBook[_sell_token][_buy_token].remove(_id);
-        //Add a new order with the same price
-        //Order book mapping to insert into 
-        orderBook[_sell_token][_buy_token].insert(_price, _id);
-    }
-
-    /**
     Get an orders price
     @param _id the id of an order
     @param _sell_token the address of the sell token
@@ -119,8 +103,14 @@ contract MatchingEngine is Exchange {
             uint _current_id;
             //uint _highest_taker_buy_price;
             uint _lowest_price_t_sell_price;
+            int _order_fill_amount;
+            uint _trade_Amount;
+            uint _taker_sell_token_amt;
             BokkyPooBahsRedBlackTreeLibrary.Tree storage _tree;
             bool _match_found = false;
+            bool _order_filled = false;   
+                         
+            
 
             //Check that there are actually orders in the book - if not in the book just add to the book
             //Making sure you swap sell and buy as to get both parts of the order book -> What someone is looking to sell
@@ -158,7 +148,56 @@ contract MatchingEngine is Exchange {
                 //Filling the callers buy_amt
                 while( || _current_id != 0){
 
-                    //How much the caller can take of the first order
+                    //How much the taker can take of the first order
+                    _order_fill_amount = currentOffers[_id].sell_amt - currentOffers[_current_id].buy_amt;
+
+
+                    if(_order_fill_amount < 0){//Taker has less than the maker
+
+                        //This means that the taker does not have enough to fill the current order so there
+                        //is no need to look for other orders - Callers order is filled instantly
+
+                        _trade_Amount = currentOffers[_id].sell_amt
+                                                .mul(currentOffers[_current_id].buy_amt)
+                                                .div(currentOffers[_current_id].sell_amt);
+                        
+                        _taker_sell_token_amt memory = currentOffers[_id].sell_amt;
+
+                        //Move the funds sell token from each user   
+                        usertokens[msg.sender][currentOffers[_id].sell_token] = usertokens[msg.sender][currentOffer.sell_token].sub(_taker_sell_token_amt);   
+                        usertokens[currentOffers[_current_id].owner][currentOffers[_current_id].buy_token] = usertokens[currentOffers[_current_id].owner][currentOffers[_current_id].buy_token].sub(_trade_Amount);
+
+                        //Add the token trades back
+                        usertokens[msg.sender][currentOffers[_id].buy_token] = usertokens[msg.sender][currentOffers[_id].buy_token].add(_trade_Amount);
+                        usertokens[currentOffers[_current_id]][currentOffer.sell_token] = usertokens[currentOffers[_current_id]][currentOffer.sell_token].add(_taker_sell_token_amt);
+
+                        //Updating order information - now the current order in the tree has been partially filled
+                        currentOffers[_current_id].buy_amt = currentOffers[_current_id].buy_amt.sub(_taker_sell_token_amt);
+                        currentOffers[_current_id].sell_amt = currentOffers[_current_id].sell_amt.sub(_trade_Amount);
+
+                        //transfer tokens on the coin contract??
+
+                        //Update tree with new partially filled order
+
+                        //Partial and full fill
+
+
+
+                        //Reorder the token balances  
+
+
+                    }
+                    else if(_order_fill_amount > 0){
+
+                        
+
+                    }
+                    else{//_order_fill_amount == 0
+
+
+
+                    }
+
 
 
                 }
