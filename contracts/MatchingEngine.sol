@@ -27,15 +27,8 @@ contract MatchingEngine is Exchange, OrderBook{
 
     //Overwritten Functions
 
-    /**
-    //Make offer for trade - Override
-    @param _sell_amt The amount of the token you want to sell
-    @param _sell_token The address of the token you want to sell
-    @param _buy_amt The amount of tokens you want to buy for
-    @param _buy_token The address of the tokens you wan to buy
-    @param _expires when the order expires
-     */
-    function makeOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, uint256 _expires) public override returns (uint256 _id) {
+
+    /*function makeOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, uint256 _expires) public override returns (uint256 _id) {
     
         //Calling base function - Creating the order
         _id = super.makeOffer(_sell_amt,_sell_token,_buy_amt,_buy_token,_expires);
@@ -54,12 +47,6 @@ contract MatchingEngine is Exchange, OrderBook{
             BokkyPooBahsRedBlackTreeLibrary.Tree storage _tree;
             bool _match_found = false;
 
-                         
-            
-
-            //Check that there are actually orders in the book - if not in the book just add to the book
-            //Making sure you swap sell and buy as to get both parts of the order book -> What someone is looking to sell
-            //and what you are looking to buy
             //Try to automatically take orders
             if(orderBook[_buy_token][_sell_token].root != 0){
                 
@@ -155,13 +142,8 @@ contract MatchingEngine is Exchange, OrderBook{
                 insert(_price, _id, _sell_token, _buy_token);
             }
         }
-    }
+    }*/
 
-    /**
-    //Takes a current offer - Override
-    @param _order_id The id of the order you want to fill
-    @param _quantity The amount of the order you want to fill
-     */
     function takeOffer(uint _order_id, uint _quantity) public override preventRecursion {
 
         //Calling base function
@@ -191,10 +173,6 @@ contract MatchingEngine is Exchange, OrderBook{
         }
     }
 
-    /**
-    //Cancels the current order - Override
-    @param _order_id the id of the order to cancel - can only cancel if you are owner of the order
-     */
     function cancelOffer(uint _order_id) public override orderActive(_order_id) {
     
         //Only use overwritten function if matching engine is turned on
