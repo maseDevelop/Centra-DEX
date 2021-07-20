@@ -8,7 +8,7 @@ import "./lib/BokkyPooBahsRedBlackTreeLibrary.sol";
 /**
 @title library that keeps a sorted order book
  */
-contract OrderBookLib {
+contract OrderBook {
 
     //Importing Libraries
     using BokkyPooBahsRedBlackTreeLibrary for BokkyPooBahsRedBlackTreeLibrary.Tree;
