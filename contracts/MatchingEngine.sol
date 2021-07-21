@@ -4,10 +4,12 @@ pragma solidity >=0.4.22 <0.9.0;
 
 //Importing contracts
 import "./Exchange.sol";
-import "./OrderBook.sol";
+//import "./OrderBook.sol";
 
 //Import RBTree library and other libraries
 import "./lib/BokkyPooBahsRedBlackTreeLibrary.sol";
+
+import "./lib/OrderBookLib.sol";
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
@@ -16,14 +18,17 @@ import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 /**
 @title Matching Engine Contract
 */
-contract MatchingEngine is Exchange, OrderBook{
+contract MatchingEngine is Exchange {
 
     bool public EngineTrading = false;
 
     //Importing Libraries
     using BokkyPooBahsRedBlackTreeLibrary for BokkyPooBahsRedBlackTreeLibrary.Tree;
+    using OrderBookLib for OrderBookLib.OB;
     using SafeMath for uint256;
     using SafeCast for uint256;
+
+    OrderBookLib.OB ob;
 
     //Overwritten Functions
 
@@ -39,19 +44,19 @@ contract MatchingEngine is Exchange, OrderBook{
             uint _price;
 
             //Try to automatically take orders
-            if(orderBook[_buy_token][_sell_token].root != 0){
+            if(ob.orderBook[_buy_token][_sell_token].root != 0){
 
                 //Lowest price taker is willing to sell for
                 uint _lowest_price_t_sell_price = _buy_amt.div(_sell_amt);//Make sure this calculation is correct
 
                 //Get the Lowest order in the tree
-                uint _current_id = orderBook[_buy_token][_sell_token].first();
+                uint _current_id = ob.orderBook[_buy_token][_sell_token].first();
 
                 //Search to find an order that meets the conditions of the taker
                 while(_current_id != 0){
-                    if(orderBook[_buy_token][_sell_token].nodes[_current_id].price < _lowest_price_t_sell_price){
+                    if(ob.orderBook[_buy_token][_sell_token].nodes[_current_id].price < _lowest_price_t_sell_price){
                         //Get the next biggest value
-                        _current_id = orderBook[_buy_token][_sell_token].next(_current_id);
+                        _current_id = ob.orderBook[_buy_token][_sell_token].next(_current_id);
                     }
                     else{
                         break;
@@ -62,7 +67,7 @@ contract MatchingEngine is Exchange, OrderBook{
                 //If there are currently no orders to be taken just add the order into the orderbook
                 _price = _sell_amt.div(_buy_amt);
                 //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
-                insert(_price, _id, _sell_token, _buy_token);
+                ob.insert(_price, _id, _sell_token, _buy_token);
                 }
 
 
@@ -92,7 +97,7 @@ contract MatchingEngine is Exchange, OrderBook{
                         //If there are currently no orders to be taken just add the order into the orderbook
                         _price = _sell_amt.div(_buy_amt);
                         //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
-                        insert(_price, _id, _sell_token, _buy_token);
+                        ob.insert(_price, _id, _sell_token, _buy_token);
                         break;
                     }
                 }
@@ -103,7 +108,7 @@ contract MatchingEngine is Exchange, OrderBook{
                 //If there are currently no orders to be taken just add the order into the orderbook
                 _price = _sell_amt.div(_buy_amt);
                 //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
-                insert(_price, _id, _sell_token, _buy_token);
+                ob.insert(_price, _id, _sell_token, _buy_token);
             }
         }
     }
@@ -114,11 +119,11 @@ contract MatchingEngine is Exchange, OrderBook{
         //Only use overwritten function if matching engine is turned on
         if(EngineTrading){
             //Removing from the order book
-            orderBook[currentOffers[_order_id].sell_token][currentOffers[_order_id].buy_token].remove(_order_id);
+            ob.orderBook[currentOffers[_order_id].sell_token][currentOffers[_order_id].buy_token].remove(_order_id);
             //calculating new price
             uint _price = currentOffers[_order_id].sell_amt.div(currentOffers[_order_id].buy_amt);
             //Inserting the order back into the tree - after the order should be updated
-            orderBook[currentOffers[_order_id].sell_token][currentOffers[_order_id].buy_token].insert(_price,_order_id);
+            ob.orderBook[currentOffers[_order_id].sell_token][currentOffers[_order_id].buy_token].insert(_price,_order_id);
         }
     }
 
@@ -130,7 +135,7 @@ contract MatchingEngine is Exchange, OrderBook{
         }
         else{
             //Removing from the order book
-            orderBook[currentOffers[_order_id].sell_token][currentOffers[_order_id].buy_token].remove(_order_id);
+            ob.orderBook[currentOffers[_order_id].sell_token][currentOffers[_order_id].buy_token].remove(_order_id);
             //Removing orders from offer mapping
             super.cancelOffer(_order_id);
         }
