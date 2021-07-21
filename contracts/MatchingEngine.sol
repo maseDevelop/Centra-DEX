@@ -28,7 +28,7 @@ contract MatchingEngine is Exchange, OrderBook{
     //Overwritten Functions
 
 
-    function makeOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, uint256 _expires) public override returns (uint256 _id) {
+    /*function makeOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, uint256 _expires) public override returns (uint256 _id) {
     
         //Calling base function - Creating the order
         _id = super.makeOffer(_sell_amt,_sell_token,_buy_amt,_buy_token,_expires);
@@ -106,7 +106,7 @@ contract MatchingEngine is Exchange, OrderBook{
                 insert(_price, _id, _sell_token, _buy_token);
             }
         }
-    }
+    }*/
 
     function takeOffer(uint _order_id, uint _quantity) public override preventRecursion {
         //Calling base function
