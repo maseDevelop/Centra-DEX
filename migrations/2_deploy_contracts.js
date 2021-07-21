@@ -11,11 +11,12 @@ module.exports = function(deployer) {
  //Deploying Matching Engine and Test Tokens for unit testing
  deployer.deploy(Testtoken1,1000);
  deployer.deploy(Testtoken2,1000);
+ deployer.deploy(TestBokkyPooBahsRedBlackTreeRaw);
  
  deployer.deploy(OrderBookLib);
  deployer.link(OrderBookLib,MatchingEngine);
  deployer.deploy(MatchingEngine, {gas: 4612388});
 
- deployer.deploy(TestBokkyPooBahsRedBlackTreeRaw);
+ 
 
 };

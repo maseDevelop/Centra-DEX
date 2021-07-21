@@ -171,7 +171,7 @@ contract("TestBokkyPooBahsRedBlackTreeRaw", (accounts) => {
 
             insertPrices.forEach(async (price,i) =>{
                 //Adding the insertprice and ID into the tree
-                //console.log(`Price: ${price} ID: ${i+1}`);
+                console.log(`Price: ${price} ID: ${i+1}`);
                 await this.tree.insert(price,i+1);
             });
 
@@ -180,15 +180,19 @@ contract("TestBokkyPooBahsRedBlackTreeRaw", (accounts) => {
 
             //Getting the smallest value
             let cursor = await this.tree.first();
+
+            console.log("cursor: ", cursor.toNumber());
           
             while(cursor != 0){
+                console.log("in")
                 cursor = await this.tree.next(cursor);
                 out.push(cursor.toNumber());
             }
 
-            /*out.forEach((item)=>{
+            console.log("out:");
+            out.forEach((item)=>{
                 console.log(item);
-            });*/
+            });
 
             assert.equal(out[0],10);
             assert.equal(out[1],15);
@@ -291,7 +295,7 @@ contract("TestBokkyPooBahsRedBlackTreeRaw", (accounts) => {
     });
 });
 
-contract("MatchingEngine", (accounts) => {
+contract.skip("MatchingEngine", (accounts) => {
 
     this.matchingEngine = undefined;
     this.token1 = undefined;
