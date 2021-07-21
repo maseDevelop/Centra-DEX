@@ -165,7 +165,76 @@ contract("TestBokkyPooBahsRedBlackTreeRaw", (accounts) => {
 
     describe("Large Scale add and remove to a tree", () => {
 
-        it("Adding 20 orders into the tree and checking that they are sorted", async () =>{
+        it("Adding 20 Orders into the tree and checking that they are sorted", async () => {
+
+    
+
+            await this.tree.insert(10,1);
+            await this.tree.insert(5,2);
+            await this.tree.insert(3,3);
+            await this.tree.insert(77,4);
+            await this.tree.insert(4,5);
+            await this.tree.insert(5,6);
+            await this.tree.insert(88,7);
+            await this.tree.insert(1,8);
+            await this.tree.insert(14,9);
+            await this.tree.insert(11,10);
+            await this.tree.insert(22,11);
+            await this.tree.insert(21,12);
+            await this.tree.insert(21,13);
+            await this.tree.insert(77,14);
+            await this.tree.insert(45,15);
+            await this.tree.insert(57,16);
+            await this.tree.insert(88,17);
+            await this.tree.insert(19,18);
+            await this.tree.insert(14,19);
+            await this.tree.insert(11,20);
+
+
+            //making sure that it is all in order
+            let out = [];
+
+             //Getting the smallest value
+            let cursor = await this.tree.first();
+            //out.push(cursor.toNumber());
+
+            while(cursor != 0){
+   
+                //console.log("cursor: ",cursor.toNumber());
+                await this.tree.getNode(cursor);
+                cursor = await this.tree.next(cursor);
+                out.push(cursor.toNumber());
+            }
+
+            /*out.forEach((item)=>{
+                console.log(item);
+            });*/
+
+
+            assert.equal(out[0],3);
+            assert.equal(out[1],5);
+            assert.equal(out[2],2);
+            assert.equal(out[3],6);
+            assert.equal(out[4],1);
+            assert.equal(out[5],10);
+            assert.equal(out[6],20);
+            assert.equal(out[7],9);
+            assert.equal(out[8],19);
+            assert.equal(out[9],18);
+            assert.equal(out[10],12);
+            assert.equal(out[11],13);
+            assert.equal(out[12],11);
+            assert.equal(out[13],15);
+            assert.equal(out[14],16);
+            assert.equal(out[15],4);
+            assert.equal(out[16],14);
+            assert.equal(out[17],7);
+            assert.equal(out[18],17);
+            assert.equal(out[19],0);//Has to be zero as it is the end
+
+        });
+
+        /*it.skip("Adding 20 orders into the tree and checking that they are sorted", async () =>{
 
             const insertPrices = [1,5,7,6,12,43,64,32,22,1,22,33,7,3,2,78,5,66,15,14];
 
@@ -182,77 +251,95 @@ contract("TestBokkyPooBahsRedBlackTreeRaw", (accounts) => {
             let cursor = await this.tree.first();
 
             console.log("cursor: ", cursor.toNumber());
+
+
+            const root = await this.tree.root();
+
+            console.log("root: ",root);
+
+            console.log(await this.tree.getNode(2));
           
             while(cursor != 0){
                 console.log("in")
                 cursor = await this.tree.next(cursor);
+                await this.tree.getNode(cursor);
                 out.push(cursor.toNumber());
             }
 
             console.log("out:");
             out.forEach((item)=>{
-                console.log(item);
+                //console.log(item);
+
+                
+
+
             });
 
             assert.equal(out[0],10);
-            assert.equal(out[1],15);
-            assert.equal(out[2],14);
-            assert.equal(out[3],2);
-            assert.equal(out[4],17);
-            assert.equal(out[5],4);
-            assert.equal(out[6],3);
-            assert.equal(out[7],13);
-            assert.equal(out[8],5);
-            assert.equal(out[9],20);
-            assert.equal(out[10],19);
-            assert.equal(out[11],9);
-            assert.equal(out[12],11);
-            assert.equal(out[13],8);
-            assert.equal(out[14],12);
-            assert.equal(out[15],6);
-            assert.equal(out[16],7);
-            assert.equal(out[17],18);
-            assert.equal(out[18],16);
-            assert.equal(out[19],0);//Has to be zero as it is the end
-        });
+            assert.equal(out[1].toNumber(),15);
+            assert.equal(out[2].toNumber(),14);
+            assert.equal(out[3].toNumber(),2);
+            assert.equal(out[4].toNumber(),17);
+            assert.equal(out[5].toNumber(),4);
+            assert.equal(out[6].toNumber(),3);
+            assert.equal(out[7].toNumber(),13);
+            assert.equal(out[8].toNumber(),5);
+            assert.equal(out[9].toNumber(),20);
+            assert.equal(out[10].toNumber(),19);
+            assert.equal(out[11].toNumber(),9);
+            assert.equal(out[12].toNumber(),11);
+            assert.equal(out[13].toNumber(),8);
+            assert.equal(out[14].toNumber(),12);
+            assert.equal(out[15].toNumber(),6);
+            assert.equal(out[16].toNumber(),7);
+            assert.equal(out[17].toNumber(),18);
+            assert.equal(out[18].toNumber(),16);
+            assert.equal(out[19].toNumber(),0);//Has to be zero as it is the end
+        });*/
 
         it("remove some of the Ids and make sure the order is still alright", async () =>{
 
-            const removeIds = [7,8,13,16,14,2,1];
 
-            //Bulk removing IDs
-            removeIds.forEach(async (id) => {
-                await this.tree.remove(id);
-            });
+
+            await this.tree.remove(7);
+            await this.tree.remove(8);
+            await this.tree.remove(13);
+            await this.tree.remove(16);
+            await this.tree.remove(2);
 
             //making sure that it is all in order
             let out = [];
 
-            //Getting the smallest value
+             //Getting the smallest value
             let cursor = await this.tree.first();
-           
+            //out.push(cursor.toNumber());
+
             while(cursor != 0){
+                //console.log("cursor: ",cursor.toNumber());
+                await this.tree.getNode(cursor);
                 cursor = await this.tree.next(cursor);
                 out.push(cursor.toNumber());
             }
-            
-            /*out.forEach( (item) =>{
+
+            /*out.forEach((item)=>{
                 console.log(item);
             });*/
 
-            assert.equal(out[0],15);
-            assert.equal(out[1],17);
-            assert.equal(out[2],4);
-            assert.equal(out[3],3);
-            assert.equal(out[4],5);
-            assert.equal(out[5],20);
+            assert.equal(out[0],5);
+            assert.equal(out[1],6);
+            assert.equal(out[2],1);
+            assert.equal(out[3],10);
+            assert.equal(out[4],20);
+            assert.equal(out[5],9);
             assert.equal(out[6],19);
-            assert.equal(out[7],9);
-            assert.equal(out[8],11);
-            assert.equal(out[9],12);
-            assert.equal(out[10],6);
-            assert.equal(out[11],18);
-            assert.equal(out[12],0);//Has to be zero as it is the end
+            assert.equal(out[7],18);
+            assert.equal(out[8],12);
+            assert.equal(out[9],11);
+            assert.equal(out[10],15);
+            assert.equal(out[11],4);
+            assert.equal(out[12],14);
+            assert.equal(out[13],17);
+            assert.equal(out[14],0);
 
         });
 
@@ -261,36 +348,43 @@ contract("TestBokkyPooBahsRedBlackTreeRaw", (accounts) => {
             await this.tree.remove(9);
             
             //Updating price
-            await this.tree.insert(13,9);
+            await this.tree.insert(23,9);
 
             //making sure that it is all in order
             let out = [];
 
-            //Getting the smallest value
+             //Getting the smallest value
             let cursor = await this.tree.first();
-           
+            //out.push(cursor.toNumber());
+
             while(cursor != 0){
+                //console.log("cursor: ",cursor.toNumber());
+                await this.tree.getNode(cursor);
                 cursor = await this.tree.next(cursor);
                 out.push(cursor.toNumber());
             }
-            
-            /*out.forEach( (item) =>{
+
+            /*out.forEach((item)=>{
                 console.log(item);
             });*/
 
-            assert.equal(out[0],15);
-            assert.equal(out[1],17);
-            assert.equal(out[2],4);
-            assert.equal(out[3],3);
-            assert.equal(out[4],5);
-            assert.equal(out[5],9);
-            assert.equal(out[6],20);
-            assert.equal(out[7],19);
+            assert.equal(out[0],5);
+            assert.equal(out[1],6);
+            assert.equal(out[2],1);
+            assert.equal(out[3],10);
+            assert.equal(out[4],20);
+            assert.equal(out[5],19);
+            assert.equal(out[6],18);
+            assert.equal(out[7],12);
             assert.equal(out[8],11);
-            assert.equal(out[9],12);
-            assert.equal(out[10],6);
-            assert.equal(out[11],18);
-            assert.equal(out[12],0);//Has to be zero as it is the end
+            assert.equal(out[9],9);
+            assert.equal(out[10],15);
+            assert.equal(out[11],4);
+            assert.equal(out[12],14);
+            assert.equal(out[13],17);
+            assert.equal(out[14],0);
+
+           
         })
     });
 });

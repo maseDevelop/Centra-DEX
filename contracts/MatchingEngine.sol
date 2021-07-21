@@ -33,7 +33,7 @@ contract MatchingEngine is Exchange {
     //Overwritten Functions
 
 
-    function makeOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, uint256 _expires) public override returns (uint256 _id) {
+    /*function makeOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, uint256 _expires) public override returns (uint256 _id) {
     
         //Calling base function - Creating the order
         _id = super.makeOffer(_sell_amt,_sell_token,_buy_amt,_buy_token,_expires);
@@ -125,7 +125,7 @@ contract MatchingEngine is Exchange {
             //Inserting the order back into the tree - after the order should be updated
             ob.orderBook[currentOffers[_order_id].sell_token][currentOffers[_order_id].buy_token].insert(_price,_order_id);
         }
-    }
+    }*/
 
     function cancelOffer(uint _order_id) public override orderActive(_order_id) {
         //Only use overwritten function if matching engine is turned on
