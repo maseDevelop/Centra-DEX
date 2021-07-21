@@ -28,7 +28,7 @@ contract MatchingEngine is Exchange, OrderBook{
     //Overwritten Functions
 
 
-    /*function makeOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, uint256 _expires) public override returns (uint256 _id) {
+    function makeOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, uint256 _expires) public override returns (uint256 _id) {
     
         //Calling base function - Creating the order
         _id = super.makeOffer(_sell_amt,_sell_token,_buy_amt,_buy_token,_expires);
@@ -36,104 +36,68 @@ contract MatchingEngine is Exchange, OrderBook{
         //Only use overwritten function if matching engine is turned on
         if(EngineTrading){
 
-
             uint _price;
-            uint _current_id;
-            //uint _highest_taker_buy_price;
-            uint _lowest_price_t_sell_price;
-            int _order_fill_amount;
-            uint _trade_Amount;
-            uint _taker_sell_token_amt;
-            BokkyPooBahsRedBlackTreeLibrary.Tree storage _tree;
-            bool _match_found = false;
 
             //Try to automatically take orders
             if(orderBook[_buy_token][_sell_token].root != 0){
-                
-                //There are orders that need to be sifted through
-                //Get the first order to look at it
 
-                //Work out how much the caller (now the taker is willing to pay)
-                //_highest_taker_buy_price = _sell_amt.div(_buy_amt);
-                _lowest_price_t_sell_price = _buy_amt.div(_sell_amt);//Make sure this calculation is correct
+                //Lowest price taker is willing to sell for
+                uint _lowest_price_t_sell_price = _buy_amt.div(_sell_amt);//Make sure this calculation is correct
 
-                //Get the first lowest order and see if you can take it - The last order in the tree highest price
-                _tree = orderBook[_buy_token][_sell_token];
+                //Get the Lowest order in the tree
+                uint _current_id = orderBook[_buy_token][_sell_token].first();
 
-                //Get the root id
-                _current_id = _tree.root;
-
-                //search the lowest price that matches the buying conditions
-                while(!_match_found || _current_id != 0){
-                    //Getting price from that node
-                    (,,,,_price,) = _tree.getNode(_current_id);
-
-                    //Going down the tree to get the lowest price
-                    if(_price >= _lowest_price_t_sell_price){
-                        _current_id = _tree.prev(_current_id);
-                    }else{
-                        _match_found = true;
+                //Search to find an order that meets the conditions of the taker
+                while(_current_id != 0){
+                    if(orderBook[_buy_token][_sell_token].nodes[_current_id].price < _lowest_price_t_sell_price){
+                        //Get the next biggest value
+                        _current_id = orderBook[_buy_token][_sell_token].next(_current_id);
+                    }
+                    else{
+                        break;
                     }
                 }
 
-                //After cheapest offer has been found - take up the orders
-                //Filling the callers buy_amt
-                while(_current_id != 0){
+                if(_current_id == 0){
+                //If there are currently no orders to be taken just add the order into the orderbook
+                _price = _sell_amt.div(_buy_amt);
+                //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
+                insert(_price, _id, _sell_token, _buy_token);
+                }
 
-                    //How much the taker can take of the first order
+
+                int _order_fill_amount;
+                while( currentOffers[_id].sell_amt != 0){
+
+                    //Now fill the orders
                     _order_fill_amount = currentOffers[_id].sell_amt.toInt256() - currentOffers[_current_id].buy_amt.toInt256();
 
+                    if(_order_fill_amount > 0){
+    
+                        //Partially filled
 
-                    if(_order_fill_amount < 0){//Taker has less than the maker
-
-                        //This means that the taker does not have enough to fill the current order so there
-                        //is no need to look for other orders - Callers order is filled instantly
-
-                        _trade_Amount = currentOffers[_id].sell_amt
-                                                .mul(currentOffers[_current_id].buy_amt)
-                                                .div(currentOffers[_current_id].sell_amt);
-                        
-                        _taker_sell_token_amt = currentOffers[_id].sell_amt;
-
-                        //Move the funds sell token from each user   
-                        usertokens[msg.sender][currentOffers[_id].sell_token] = usertokens[msg.sender][currentOffers[_id].sell_token].sub(_taker_sell_token_amt);   
-                        usertokens[currentOffers[_current_id].owner][currentOffers[_current_id].buy_token] = usertokens[currentOffers[_current_id].owner][currentOffers[_current_id].buy_token].sub(_trade_Amount);
-
-                        //Add the token trades back
-                        usertokens[msg.sender][currentOffers[_id].buy_token] = usertokens[msg.sender][currentOffers[_id].buy_token].add(_trade_Amount);
-                        usertokens[currentOffers[_current_id].owner][currentOffers[_current_id].sell_token] = usertokens[currentOffers[_current_id].owner][currentOffers[_current_id].sell_token].add(_taker_sell_token_amt);
-
-                        //Updating order information - now the current order in the tree has been partially filled
-                        currentOffers[_current_id].buy_amt = currentOffers[_current_id].buy_amt.sub(_trade_Amount);
-                        currentOffers[_current_id].sell_amt = currentOffers[_current_id].sell_amt.sub(_taker_sell_token_amt);
-
-                        //transfer tokens on the coin contract??
-
-                        //Update tree with new partially filled order
-
-                        //Partial and full fill
-
-
-
-                        //Reorder the token balances  
-
+                        //Have to go to the next order and see if you can fill it 
 
                     }
-                    else if(_order_fill_amount > 0){
-
-                        
-
-                    }
-                    else{//_order_fill_amount == 0
-
-
+                    else{
+           
+                        //Fully filled
+                        _trade(_id, _current_id, currentOffers[_id].sell_amt);
 
                     }
 
 
-
+                    //If the no orders in the book at left over to the book
+                    if(_current_id == 0){
+                        //If there are currently no orders to be taken just add the order into the orderbook
+                        _price = _sell_amt.div(_buy_amt);
+                        //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
+                        insert(_price, _id, _sell_token, _buy_token);
+                        break;
+                    }
                 }
 
+           
             }
             else{
                 //If there are currently no orders to be taken just add the order into the orderbook
@@ -142,58 +106,78 @@ contract MatchingEngine is Exchange, OrderBook{
                 insert(_price, _id, _sell_token, _buy_token);
             }
         }
-    }*/
+    }
 
     function takeOffer(uint _order_id, uint _quantity) public override preventRecursion {
-
         //Calling base function
         super.takeOffer(_order_id,_quantity);
-
         //Only use overwritten function if matching engine is turned on
         if(EngineTrading){
-
-            //Get the order details
-            OfferInfo memory offer = currentOffers[_order_id];
-
-            address _sell_token = offer.sell_token; 
-            address _buy_token = offer.buy_token;
-
-            //Update the order in the order book - first remove
             //Removing from the order book
-            orderBook[_sell_token][_buy_token].remove(_order_id);
-
-            uint _sell_amt = offer.sell_amt;
-            uint _buy_amt = offer.buy_amt;
-
+            orderBook[currentOffers[_order_id].sell_token][currentOffers[_order_id].buy_token].remove(_order_id);
             //calculating new price
-            uint _price = _sell_amt.div(_buy_amt);
-
+            uint _price = currentOffers[_order_id].sell_amt.div(currentOffers[_order_id].buy_amt);
             //Inserting the order back into the tree - after the order should be updated
-            orderBook[_sell_token][_buy_token].insert(_price,_order_id);
+            orderBook[currentOffers[_order_id].sell_token][currentOffers[_order_id].buy_token].insert(_price,_order_id);
         }
     }
 
     function cancelOffer(uint _order_id) public override orderActive(_order_id) {
-    
         //Only use overwritten function if matching engine is turned on
         if(!EngineTrading){
             //Calling base function
             super.cancelOffer(_order_id);
         }
         else{
-            
-            //Cancel the order and remove it from the the list - First get the order
-            OfferInfo memory offer = currentOffers[_order_id];
-
-            address _sell_token = offer.sell_token; 
-            address _buy_token = offer.buy_token;
-
             //Removing from the order book
-            orderBook[_sell_token][_buy_token].remove(_order_id);
-
+            orderBook[currentOffers[_order_id].sell_token][currentOffers[_order_id].buy_token].remove(_order_id);
             //Removing orders from offer mapping
             super.cancelOffer(_order_id);
-
         }
     }
+
+    //Offer one is always taking offer two values
+    function _trade(uint _offer1, uint _offer2, uint _quantity) internal {
+
+        //make sure that you are not taking more than the they are selling 
+        //price infered on exchange esimated price as not just a order price for fiat
+        uint256 tradeAmount = _quantity.mul(currentOffers[_offer2].buy_amt).div(currentOffers[_offer2].sell_amt);
+
+        //Make sure trade amount is valid
+        require(tradeAmount >= 0, "Trade amount is not valid");
+
+        //Renstate the owners ablity to trade funds that they put up for sale - by how much the owner is willig to pay
+        usertokens[currentOffers[_offer2].owner][currentOffers[_offer2].sell_token] = usertokens[currentOffers[_offer2].owner][currentOffers[_offer2].sell_token].add(_quantity);
+
+        //Move the funds sell token from each user   
+        usertokens[currentOffers[_offer2].owner][currentOffers[_offer2].sell_token] = usertokens[currentOffers[_offer2].owner][currentOffers[_offer2].sell_token].sub(_quantity);   
+        usertokens[msg.sender][currentOffers[_offer2].buy_token] = usertokens[msg.sender][currentOffers[_offer2].buy_token].sub(tradeAmount);
+
+        //Add the token trades back
+        usertokens[currentOffers[_offer2].owner][currentOffers[_offer2].buy_token] = usertokens[currentOffers[_offer2].owner][currentOffers[_offer2].buy_token].add(tradeAmount);
+        usertokens[msg.sender][currentOffers[_offer2].sell_token] = usertokens[msg.sender][currentOffers[_offer2].sell_token].add(_quantity);
+
+        //Updating order information
+        currentOffers[_offer1].buy_amt = 0;
+        currentOffers[_offer1].sell_amt = 0;
+        emit FilledOffer(currentOffers[_offer1].sell_amt, currentOffers[_offer1].sell_token, currentOffers[_offer1].buy_amt, currentOffers[_offer1].buy_token, currentOffers[_offer1].owner, currentOffers[_offer1].expires, block.timestamp);
+
+        currentOffers[_offer2].buy_amt = currentOffers[_offer2].buy_amt.sub(tradeAmount);
+        currentOffers[_offer2].sell_amt = currentOffers[_offer2].sell_amt.sub(_quantity);
+
+        //Has the order been finished - reset the order
+        if(currentOffers[_offer2].sell_amt == 0){
+            emit FilledOffer(currentOffers[_offer2].sell_amt, currentOffers[_offer2].sell_token, currentOffers[_offer2].buy_amt, currentOffers[_offer2].buy_token, currentOffers[_offer2].owner, currentOffers[_offer2].expires, block.timestamp);
+            //Reset order
+            delete currentOffers[_offer2];
+        }
+        else{
+            emit PartialFillOffer(currentOffers[_offer2].sell_amt, currentOffers[_offer2].sell_token, currentOffers[_offer2].buy_amt, currentOffers[_offer2].buy_token, currentOffers[_offer2].owner, currentOffers[_offer2].expires, block.timestamp);
+        }
+
+    }
+
 }
+
+
+

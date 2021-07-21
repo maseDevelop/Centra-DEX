@@ -49,7 +49,6 @@ contract OrderBook {
         return orderBook[_sell_token][_buy_token].first();
     }
 
-
     /**
     Gets the dearest offer id for the specific order book
     @param _sell_token the address of the sell token
