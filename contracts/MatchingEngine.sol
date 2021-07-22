@@ -30,10 +30,15 @@ contract MatchingEngine is Exchange {
 
     OrderBookLib.OB ob;
 
+
+    //Turn on the matching engine
+    function setEngineTrading(bool _value) public {
+        EngineTrading = _value;
+    }
+
     //Overwritten Functions
 
-
-    /*function makeOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, uint256 _expires) public override returns (uint256 _id) {
+    function makeOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, uint256 _expires) public override returns (uint256 _id) {
     
         //Calling base function - Creating the order
         _id = super.makeOffer(_sell_amt,_sell_token,_buy_amt,_buy_token,_expires);
@@ -80,8 +85,10 @@ contract MatchingEngine is Exchange {
                     if(_order_fill_amount > 0){
     
                         //Partially filled
+                        _trade(_current_id, _id, currentOffers[_current_id].buy_amt); //Maybe sell_amt;
 
-                        //Have to go to the next order and see if you can fill it 
+                        //Have to go to the next order and see if you can fill it
+                        _current_id = ob.orderBook[_buy_token][_sell_token].next(_current_id);
 
                     }
                     else{
@@ -101,8 +108,6 @@ contract MatchingEngine is Exchange {
                         break;
                     }
                 }
-
-           
             }
             else{
                 //If there are currently no orders to be taken just add the order into the orderbook
@@ -125,7 +130,7 @@ contract MatchingEngine is Exchange {
             //Inserting the order back into the tree - after the order should be updated
             ob.orderBook[currentOffers[_order_id].sell_token][currentOffers[_order_id].buy_token].insert(_price,_order_id);
         }
-    }*/
+    }
 
     function cancelOffer(uint _order_id) public override orderActive(_order_id) {
         //Only use overwritten function if matching engine is turned on
@@ -179,7 +184,6 @@ contract MatchingEngine is Exchange {
         else{
             emit PartialFillOffer(currentOffers[_offer2].sell_amt, currentOffers[_offer2].sell_token, currentOffers[_offer2].buy_amt, currentOffers[_offer2].buy_token, currentOffers[_offer2].owner, currentOffers[_offer2].expires, block.timestamp);
         }
-
     }
 
 }

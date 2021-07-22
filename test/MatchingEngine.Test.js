@@ -389,7 +389,7 @@ contract("TestBokkyPooBahsRedBlackTreeRaw", (accounts) => {
     });
 });
 
-contract.skip("MatchingEngine", (accounts) => {
+contract("MatchingEngine Simulation", (accounts) => {
 
     this.matchingEngine = undefined;
     this.token1 = undefined;
@@ -404,19 +404,79 @@ contract.skip("MatchingEngine", (accounts) => {
         //Creating a token for the matching engine
         this.matchingEngine = await MatchingEngine.deployed();
 
+        //Distribute tokens amongst all user accounts - Token 1
+        //account 0 already has tokens
+        await this.token1.transfer(accounts[1],100);
+        await this.token1.transfer(accounts[2],100);
+        await this.token1.transfer(accounts[3],100);
+        await this.token1.transfer(accounts[4],100);
+        await this.token1.transfer(accounts[5],100);
+        await this.token1.transfer(accounts[6],100);
+        await this.token1.transfer(accounts[7],100);
+        await this.token1.transfer(accounts[8],100);
+        await this.token1.transfer(accounts[9],100);
+
+        //Distribute tokens amongst all user accounts - Token 2
+        //account 0 already has tokens
+        await this.token2.transfer(accounts[1],100);
+        await this.token2.transfer(accounts[2],100);
+        await this.token2.transfer(accounts[3],100);
+        await this.token2.transfer(accounts[4],100);
+        await this.token2.transfer(accounts[5],100);
+        await this.token2.transfer(accounts[6],100);
+        await this.token2.transfer(accounts[7],100);
+        await this.token2.transfer(accounts[8],100);
+        await this.token2.transfer(accounts[9],100);
+
+        //Approving the contracts usage by each of the account - Token 1
+        await this.token1.approve(this.matchingEngine.address,100,{from: accounts[0]});
+        await this.token1.approve(this.matchingEngine.address,100,{from: accounts[1]});
+        await this.token1.approve(this.matchingEngine.address,100,{from: accounts[2]});
+        await this.token1.approve(this.matchingEngine.address,100,{from: accounts[3]});
+        await this.token1.approve(this.matchingEngine.address,100,{from: accounts[4]});
+        await this.token1.approve(this.matchingEngine.address,100,{from: accounts[5]});
+        await this.token1.approve(this.matchingEngine.address,100,{from: accounts[6]});
+        await this.token1.approve(this.matchingEngine.address,100,{from: accounts[7]});
+        await this.token1.approve(this.matchingEngine.address,100,{from: accounts[8]});
+        await this.token1.approve(this.matchingEngine.address,100,{from: accounts[9]});
+
+        //Approving the contracts usage by each of the account - Token 2
+        await this.token2.approve(this.matchingEngine.address,100,{from: accounts[0]});
+        await this.token2.approve(this.matchingEngine.address,100,{from: accounts[1]});
+        await this.token2.approve(this.matchingEngine.address,100,{from: accounts[2]});
+        await this.token2.approve(this.matchingEngine.address,100,{from: accounts[3]});
+        await this.token2.approve(this.matchingEngine.address,100,{from: accounts[4]});
+        await this.token2.approve(this.matchingEngine.address,100,{from: accounts[5]});
+        await this.token2.approve(this.matchingEngine.address,100,{from: accounts[6]});
+        await this.token2.approve(this.matchingEngine.address,100,{from: accounts[7]});
+        await this.token2.approve(this.matchingEngine.address,100,{from: accounts[8]});
+        await this.token2.approve(this.matchingEngine.address,100,{from: accounts[9]});
+     
     })
 
     describe("Initial setup testing", () =>{
-
-
         it("matching engine is not currently active", async () =>{
-            
             const value = await this.matchingEngine.EngineTrading();
             assert.strictEqual(value,false, "The trading engine started out working and should be false");
+        });
+
+        it("matching engine registers after being turned on", async () =>{
+            await this.matchingEngine.setEngineTrading(true);
+            let value = await this.matchingEngine.EngineTrading();
+            assert.strictEqual(value,true,"Matching engine has not been turned on");
+            await this.matchingEngine.setEngineTrading(false);//Turn of for testing to add orders
+            value = await this.matchingEngine.EngineTrading();
+            assert.strictEqual(value,false,"Matching Engine did not turn off");
         });
     });
 
     describe("Testing insertion method", () =>{
+
+        
+    
+    });
+
+    /*describe("Testing insertion method", () =>{
 
         it("making sure that there are no orders active", async () =>{
             const out = await this.matchingEngine.getFirstOffer(this.token1.address, this.token2.address)
@@ -468,6 +528,6 @@ contract.skip("MatchingEngine", (accounts) => {
             assert.equal(price3.toNumber(),5,"Wrong price returned");
         });
 
-    });
+    });*/
 
 });
