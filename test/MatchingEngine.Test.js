@@ -534,11 +534,11 @@ contract("MatchingEngine Simulation", (accounts) => {
 
         it("Inserting an offer and becoming the taker of current offers from a different account - Price 1 Units - Enough to take 2 orders from the book", async () =>{
             await this.matchingEngine.makeOffer(12, this.token2.address, 12, this.token1.address, 0, {from: accounts[3]});
-            const out = await this.matchingEngine.getFirstOffer(this.token1.address, this.token2.address);
+            //const out = await this.matchingEngine.getFirstOffer(this.token1.address, this.token2.address);
             //console.log(out);
 
 
-            const one =  await this.matchingEngine.getOrderDetails(1);
+            /*const one =  await this.matchingEngine.getOrderDetails(1);
             const two = await this.matchingEngine.getOrderDetails(2);
             const three = await this.matchingEngine.getOrderDetails(3);
             const four = await this.matchingEngine.getOrderDetails(4);
@@ -546,8 +546,22 @@ contract("MatchingEngine Simulation", (accounts) => {
             console.log(one);
             console.log(two);
             console.log(three);
-            console.log(four);
-            assert(false);
+            console.log(four);*/
+
+            const out = await this.matchingEngine.getFirstOffer(this.token1.address, this.token2.address);
+            assert.equal(out,1);
+
+            orderOutput = await this.matchingEngine.getOrderDetails(1);
+            assert(orderOutput['id'] == 1,"id not equal to 3");
+            assert(orderOutput['sell_amt'] == 23, "sell amount not equal to 23");
+            assert(orderOutput['buy_amt'] == 8, "buy amount not equal to 2");
+            assert(orderOutput['sell_token'] == this.token1.address, "token 1 address is not the same");
+            assert(orderOutput['buy_token'] == this.token2.address, "token 2 address is not the same");
+        });
+
+        it("making sure there is no order for the order that has just been filled in the orderbook", async ()=>{
+            const out = await this.matchingEngine.getFirstOffer(this.token2.address, this.token1.address);
+            assert.equal(out,0);
         });
 
     });
