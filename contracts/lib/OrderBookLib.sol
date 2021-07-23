@@ -40,6 +40,9 @@ library OrderBookLib {
         self.orderBook[_sell_token][_buy_token].remove(_id);
     }
 
+
+    event FirstOfferEvent(uint256 id);
+
     /**
     Gets the best offer id for the specific order book
     @param _sell_token the address of the sell token
@@ -47,6 +50,7 @@ library OrderBookLib {
     @return _id the id of teh lowest offer
     */
     function getFirstOffer(OB storage self, address _sell_token, address _buy_token) public view returns(uint) {
+        //emit FirstOfferEvent(self.orderBook[_sell_token][_buy_token].first());
         return self.orderBook[_sell_token][_buy_token].first();
     }
 

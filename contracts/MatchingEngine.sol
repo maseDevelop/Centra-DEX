@@ -22,6 +22,8 @@ contract MatchingEngine is Exchange {
 
     bool public EngineTrading = false;
 
+    event EngineTradingStatus(bool status);
+
     //Importing Libraries
     using BokkyPooBahsRedBlackTreeLibrary for BokkyPooBahsRedBlackTreeLibrary.Tree;
     using OrderBookLib for OrderBookLib.OB;
@@ -34,6 +36,18 @@ contract MatchingEngine is Exchange {
     //Turn on the matching engine
     function setEngineTrading(bool _value) public {
         EngineTrading = _value;
+        emit EngineTradingStatus(_value);
+    }
+
+    event out(uint256 id);
+    event out1(int id);
+    event boolOut(bool out);
+
+    function getFirstOffer(address _sell_token, address _buy_token) public view returns (uint) {
+        //return ob.getFirstOffer(_sell_token, _buy_token);
+
+        
+        return ob.orderBook[_sell_token][_buy_token].first();
     }
 
     //Overwritten Functions
@@ -43,10 +57,14 @@ contract MatchingEngine is Exchange {
         //Calling base function - Creating the order
         _id = super.makeOffer(_sell_amt,_sell_token,_buy_amt,_buy_token,_expires);
 
+        //Add to the order book - This removes any chance for deleting when not in tree error
+        uint256 _price = _sell_amt.div(_buy_amt);
+        //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
+        ob.orderBook[_sell_token][_buy_token].insert(_price, _id);
+
+
         //Only use overwritten function if matching engine is turned on
         if(EngineTrading){
-
-            uint _price;
 
             //Try to automatically take orders
             if(ob.orderBook[_buy_token][_sell_token].root != 0){
@@ -54,26 +72,32 @@ contract MatchingEngine is Exchange {
                 //Lowest price taker is willing to sell for
                 uint _lowest_price_t_sell_price = _buy_amt.div(_sell_amt);//Make sure this calculation is correct
 
+                emit out(_lowest_price_t_sell_price);
+
                 //Get the Lowest order in the tree
                 uint _current_id = ob.orderBook[_buy_token][_sell_token].first();
+                
+                emit out(_current_id);
 
                 //Search to find an order that meets the conditions of the taker
                 while(_current_id != 0){
                     if(ob.orderBook[_buy_token][_sell_token].nodes[_current_id].price < _lowest_price_t_sell_price){
                         //Get the next biggest value
+                        emit out(_current_id);
                         _current_id = ob.orderBook[_buy_token][_sell_token].next(_current_id);
                     }
                     else{
+                        emit out1(99);
                         break;
                     }
                 }
 
-                if(_current_id == 0){
+                /*if(_current_id == 0){
                 //If there are currently no orders to be taken just add the order into the orderbook
                 _price = _sell_amt.div(_buy_amt);
                 //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
                 ob.insert(_price, _id, _sell_token, _buy_token);
-                }
+                }*/
 
 
                 int _order_fill_amount;
@@ -82,39 +106,51 @@ contract MatchingEngine is Exchange {
                     //Now fill the orders
                     _order_fill_amount = currentOffers[_id].sell_amt.toInt256() - currentOffers[_current_id].buy_amt.toInt256();
 
+                    //emit out1(_order_fill_amount);
+
                     if(_order_fill_amount > 0){
+
+                        //_next_current_id = ob.orderBook[_buy_token][_sell_token].next(_current_id);
+                        //emit out(_current_id);
+                        //emit out(_next_current_id);
     
                         //Partially filled
                         _trade(_current_id, _id, currentOffers[_current_id].buy_amt); //Maybe sell_amt;
 
+                        _current_id = ob.orderBook[_buy_token][_sell_token].first();
+
                         //Have to go to the next order and see if you can fill it
-                        _current_id = ob.orderBook[_buy_token][_sell_token].next(_current_id);
+                        //_current_id = ob.orderBook[_buy_token][_sell_token].next(_current_id);
+                        //_current_id = _next_current_id;
+
+                        //emit out(_current_id);
 
                     }
                     else{
            
                         //Fully filled
+                        emit out(99);
                         _trade(_id, _current_id, currentOffers[_id].sell_amt);
 
                     }
 
 
                     //If the no orders in the book at left over to the book
-                    if(_current_id == 0){
+                    /*if(_current_id == 0){
                         //If there are currently no orders to be taken just add the order into the orderbook
                         _price = _sell_amt.div(_buy_amt);
                         //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
                         ob.insert(_price, _id, _sell_token, _buy_token);
                         break;
-                    }
+                    }*/
                 }
             }
-            else{
+            /*else{
                 //If there are currently no orders to be taken just add the order into the orderbook
                 _price = _sell_amt.div(_buy_amt);
                 //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
                 ob.insert(_price, _id, _sell_token, _buy_token);
-            }
+            }*/
         }
     }
 
@@ -167,10 +203,12 @@ contract MatchingEngine is Exchange {
         usertokens[currentOffers[_offer2].owner][currentOffers[_offer2].buy_token] = usertokens[currentOffers[_offer2].owner][currentOffers[_offer2].buy_token].add(tradeAmount);
         usertokens[msg.sender][currentOffers[_offer2].sell_token] = usertokens[msg.sender][currentOffers[_offer2].sell_token].add(_quantity);
 
-        //Updating order information
+        //Updating order information - always clear offer1
         currentOffers[_offer1].buy_amt = 0;
         currentOffers[_offer1].sell_amt = 0;
+        ob.orderBook[currentOffers[_offer1].sell_token][currentOffers[_offer1].buy_token].remove(_offer1);//Not going to work when not in tree
         emit FilledOffer(currentOffers[_offer1].sell_amt, currentOffers[_offer1].sell_token, currentOffers[_offer1].buy_amt, currentOffers[_offer1].buy_token, currentOffers[_offer1].owner, currentOffers[_offer1].expires, block.timestamp);
+        delete currentOffers[_offer1];
 
         currentOffers[_offer2].buy_amt = currentOffers[_offer2].buy_amt.sub(tradeAmount);
         currentOffers[_offer2].sell_amt = currentOffers[_offer2].sell_amt.sub(_quantity);
@@ -179,6 +217,7 @@ contract MatchingEngine is Exchange {
         if(currentOffers[_offer2].sell_amt == 0){
             emit FilledOffer(currentOffers[_offer2].sell_amt, currentOffers[_offer2].sell_token, currentOffers[_offer2].buy_amt, currentOffers[_offer2].buy_token, currentOffers[_offer2].owner, currentOffers[_offer2].expires, block.timestamp);
             //Reset order
+            ob.orderBook[currentOffers[_offer2].sell_token][currentOffers[_offer2].buy_token].remove(_offer2);
             delete currentOffers[_offer2];
         }
         else{

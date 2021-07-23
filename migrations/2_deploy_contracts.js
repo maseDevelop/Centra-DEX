@@ -17,6 +17,4 @@ module.exports = function(deployer) {
  deployer.link(OrderBookLib,MatchingEngine);
  deployer.deploy(MatchingEngine, {gas: 4612388});
 
- 
-
 };

@@ -195,6 +195,8 @@ contract("Exchange", (accounts) => {
 
             const orderOutput = await this.exchange.getOrderDetails(2);
 
+            //console.log(orderOutput);
+
             truffleAssert.eventEmitted(tx, 'FilledOffer');
             assert(orderOutput['sell_amt'] == 0, "sell amount not equal to 0");
             assert(orderOutput['buy_amt'] == 0, "buy amount not equal to 0");

@@ -391,6 +391,8 @@ contract("TestBokkyPooBahsRedBlackTreeRaw", (accounts) => {
 
 contract("MatchingEngine Simulation", (accounts) => {
 
+    //Tests Matching Engine and simulates trades
+
     this.matchingEngine = undefined;
     this.token1 = undefined;
     this.token2 = undefined;
@@ -451,10 +453,53 @@ contract("MatchingEngine Simulation", (accounts) => {
         await this.token2.approve(this.matchingEngine.address,100,{from: accounts[7]});
         await this.token2.approve(this.matchingEngine.address,100,{from: accounts[8]});
         await this.token2.approve(this.matchingEngine.address,100,{from: accounts[9]});
+
+        //Depositing tokens into the exchange - Token 1
+        await this.matchingEngine.depositToken(this.token1.address,100,{from: accounts[0]});
+        await this.matchingEngine.depositToken(this.token1.address,100,{from: accounts[1]});
+        await this.matchingEngine.depositToken(this.token1.address,100,{from: accounts[2]});
+        await this.matchingEngine.depositToken(this.token1.address,100,{from: accounts[3]});
+        await this.matchingEngine.depositToken(this.token1.address,100,{from: accounts[4]});
+        await this.matchingEngine.depositToken(this.token1.address,100,{from: accounts[5]});
+        await this.matchingEngine.depositToken(this.token1.address,100,{from: accounts[6]});
+        await this.matchingEngine.depositToken(this.token1.address,100,{from: accounts[7]});
+        await this.matchingEngine.depositToken(this.token1.address,100,{from: accounts[8]});
+        await this.matchingEngine.depositToken(this.token1.address,100,{from: accounts[9]});
+
+        //Depositing tokens into the exchange - Token 2
+        await this.matchingEngine.depositToken(this.token2.address,100,{from: accounts[0]});
+        await this.matchingEngine.depositToken(this.token2.address,100,{from: accounts[1]});
+        await this.matchingEngine.depositToken(this.token2.address,100,{from: accounts[2]});
+        await this.matchingEngine.depositToken(this.token2.address,100,{from: accounts[3]});
+        await this.matchingEngine.depositToken(this.token2.address,100,{from: accounts[4]});
+        await this.matchingEngine.depositToken(this.token2.address,100,{from: accounts[5]});
+        await this.matchingEngine.depositToken(this.token2.address,100,{from: accounts[6]});
+        await this.matchingEngine.depositToken(this.token2.address,100,{from: accounts[7]});
+        await this.matchingEngine.depositToken(this.token2.address,100,{from: accounts[8]});
+        await this.matchingEngine.depositToken(this.token2.address,100,{from: accounts[9]});
      
     })
 
     describe("Initial setup testing", () =>{
+
+        it("all accounts have the correct balance and tokens", async () =>{
+            let balancesToken1 = [];
+            let balancesToken2 = [];
+
+            for (let i = 0; i < 10; i++) {
+                //Adding value to array
+                balancesToken1.push(await this.matchingEngine.getBalance(this.token1.address,{from: accounts[i]}));
+                balancesToken2.push(await this.matchingEngine.getBalance(this.token2.address,{from: accounts[i]}));
+            }
+
+            //Assertions
+            for(let j = 0; j < 10; j++){
+                assert.equal(balancesToken1[j],100,"Not correct balance for token 1");
+                assert.equal(balancesToken2[j],100,"Not correct balance for token 2");
+            }
+
+        });
+
         it("matching engine is not currently active", async () =>{
             const value = await this.matchingEngine.EngineTrading();
             assert.strictEqual(value,false, "The trading engine started out working and should be false");
@@ -464,70 +509,46 @@ contract("MatchingEngine Simulation", (accounts) => {
             await this.matchingEngine.setEngineTrading(true);
             let value = await this.matchingEngine.EngineTrading();
             assert.strictEqual(value,true,"Matching engine has not been turned on");
-            await this.matchingEngine.setEngineTrading(false);//Turn of for testing to add orders
-            value = await this.matchingEngine.EngineTrading();
-            assert.strictEqual(value,false,"Matching Engine did not turn off");
         });
     });
 
     describe("Testing insertion method", () =>{
 
-        
-    
-    });
-
-    /*describe("Testing insertion method", () =>{
-
-        it("making sure that there are no orders active", async () =>{
-            const out = await this.matchingEngine.getFirstOffer(this.token1.address, this.token2.address)
-            assert(out,0,"The orders are not intialised to zero");
+        it("adding an order into the tree - Price 3 units", async () =>{
+            await this.matchingEngine.makeOffer(30, this.token1.address, 10, this.token2.address, 0, {from: accounts[0]});
+            const id = await this.matchingEngine.getFirstOffer(this.token1.address, this.token2.address);
+            assert.equal(id,1,"Order not_sell_token added into order book");
         });
 
-        it("making sure that an order shows up when inserted into the tree", async () =>{
-            await this.matchingEngine.insert(5, 1, this.token1.address, this.token2.address);
+        it("adding a higher priced order into the tree from a differnt account - Price 5 units", async () =>{
+            await this.matchingEngine.makeOffer(10, this.token1.address, 2, this.token2.address, 0, {from: accounts[1]});
+            const id = await this.matchingEngine.getFirstOffer(this.token1.address, this.token2.address);
+            assert.equal(id,1,"Order is to high to be first order");
+        });
+
+        it("adding a lower priced order into the tree from a differnt account - Price 1 units", async () =>{
+            await this.matchingEngine.makeOffer(5, this.token1.address, 5, this.token2.address, 0, {from: accounts[2]});
+            const id = await this.matchingEngine.getFirstOffer(this.token1.address, this.token2.address);
+            assert.equal(id,3,"Order is to high to be first order");
+        });
+
+        it("Inserting an offer and becoming the taker of current offers from a different account - Price 1 Units - Enough to take 2 orders from the book", async () =>{
+            await this.matchingEngine.makeOffer(12, this.token2.address, 12, this.token1.address, 0, {from: accounts[3]});
             const out = await this.matchingEngine.getFirstOffer(this.token1.address, this.token2.address);
-            assert.strictEqual(out.toNumber(),1, "Wrong ID is outputed");
-        });
+            //console.log(out);
 
-        it("making sure that an order shows up when inserted into the tree before previous orders as it is cheaper", async () =>{
-            await this.matchingEngine.insert(4, 2, this.token1.address, this.token2.address);
-            const out = await this.matchingEngine.getFirstOffer(this.token1.address, this.token2.address);
-            assert.strictEqual(out.toNumber(),2, "Wrong ID is outputed");
-        });
 
-        it("making sure that an order shows up when inserted into the tree after previous orders as it is dearer", async () =>{
-            await this.matchingEngine.insert(6, 3, this.token1.address, this.token2.address);
-            const out = await this.matchingEngine.getFirstOffer(this.token1.address, this.token2.address);
-            //Should still be the same ID
-            assert.strictEqual(out.toNumber(),2, "Wrong ID is outputed");
-        });
+            const one =  await this.matchingEngine.getOrderDetails(1);
+            const two = await this.matchingEngine.getOrderDetails(2);
+            const three = await this.matchingEngine.getOrderDetails(3);
+            const four = await this.matchingEngine.getOrderDetails(4);
 
-        it("making sure that an order shows as the biggest dearest order has the right id", async () =>{
-            const out = await this.matchingEngine.getLastOffer(this.token1.address, this.token2.address);
-            const out1 = await this.matchingEngine.getFirstOffer(this.token1.address, this.token2.address);
-            //Should still be the same ID
-            assert.strictEqual(out.toNumber(),3, "Wrong ID is outputed for highest price ID");
-            assert.strictEqual(out1.toNumber(),2, "Wrong ID is outputed for lowest price ID");
+            console.log(one);
+            console.log(two);
+            console.log(three);
+            console.log(four);
+            assert(false);
         });
 
     });
-
-    describe("Testing Getting a specific order", async () =>{
-
-        it("Get the right price from a specified order", async () =>{
-
-
-
-            const price1 = await this.matchingEngine.getNode(3,this.token1.address, this.token2.address);
-            assert.equal(price1.toNumber(),6,"Wrong price returned");
-
-            const price2 = await this.matchingEngine.getNode(2,this.token1.address, this.token2.address);
-            assert.equal(price2.toNumber(),4,"Wrong price returned");
-
-            const price3 = await this.matchingEngine.getNode(1,this.token1.address, this.token2.address);
-            assert.equal(price3.toNumber(),5,"Wrong price returned");
-        });
-
-    });*/
-
 });
