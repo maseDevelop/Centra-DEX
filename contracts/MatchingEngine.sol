@@ -4,10 +4,12 @@ pragma solidity >=0.4.22 <0.9.0;
 
 //Importing contracts
 import "./Exchange.sol";
-import "./OrderBook.sol";
+//import "./OrderBook.sol";
 
 //Import RBTree library and other libraries
 import "./lib/BokkyPooBahsRedBlackTreeLibrary.sol";
+
+import "./lib/OrderBookLib.sol";
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
@@ -16,54 +18,86 @@ import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 /**
 @title Matching Engine Contract
 */
-contract MatchingEngine is Exchange, OrderBook{
+contract MatchingEngine is Exchange {
 
     bool public EngineTrading = false;
 
+    event EngineTradingStatus(bool status);
+
     //Importing Libraries
     using BokkyPooBahsRedBlackTreeLibrary for BokkyPooBahsRedBlackTreeLibrary.Tree;
+    using OrderBookLib for OrderBookLib.OB;
     using SafeMath for uint256;
     using SafeCast for uint256;
 
-    //Overwritten Functions
+    OrderBookLib.OB ob;
 
+
+    //Turn on the matching engine
+    function setEngineTrading(bool _value) public {
+        EngineTrading = _value;
+        emit EngineTradingStatus(_value);
+    }
+
+    event out(uint256 id);
+    event out1(int id);
+    event boolOut(bool out);
+
+    function getFirstOffer(address _sell_token, address _buy_token) public view returns (uint) {
+        //return ob.getFirstOffer(_sell_token, _buy_token);
+
+        
+        return ob.orderBook[_sell_token][_buy_token].first();
+    }
+
+    //Overwritten Functions
 
     /*function makeOffer(uint _sell_amt, address _sell_token, uint _buy_amt, address _buy_token, uint256 _expires) public override returns (uint256 _id) {
     
         //Calling base function - Creating the order
         _id = super.makeOffer(_sell_amt,_sell_token,_buy_amt,_buy_token,_expires);
 
+        //Add to the order book - This removes any chance for deleting when not in tree error
+        uint256 _price = _sell_amt.div(_buy_amt);
+        //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
+        ob.orderBook[_sell_token][_buy_token].insert(_price, _id);
+
+
         //Only use overwritten function if matching engine is turned on
         if(EngineTrading){
 
-            uint _price;
-
             //Try to automatically take orders
-            if(orderBook[_buy_token][_sell_token].root != 0){
+            if(ob.orderBook[_buy_token][_sell_token].root != 0){
 
                 //Lowest price taker is willing to sell for
                 uint _lowest_price_t_sell_price = _buy_amt.div(_sell_amt);//Make sure this calculation is correct
 
+                emit out(_lowest_price_t_sell_price);
+
                 //Get the Lowest order in the tree
-                uint _current_id = orderBook[_buy_token][_sell_token].first();
+                uint _current_id = ob.orderBook[_buy_token][_sell_token].first();
+                
+                emit out(_current_id);
 
                 //Search to find an order that meets the conditions of the taker
                 while(_current_id != 0){
-                    if(orderBook[_buy_token][_sell_token].nodes[_current_id].price < _lowest_price_t_sell_price){
+                    if(ob.orderBook[_buy_token][_sell_token].nodes[_current_id].price < _lowest_price_t_sell_price){
                         //Get the next biggest value
-                        _current_id = orderBook[_buy_token][_sell_token].next(_current_id);
+                        emit out(_current_id);
+                        _current_id = ob.orderBook[_buy_token][_sell_token].next(_current_id);
                     }
                     else{
+                        emit out1(99);
                         break;
                     }
                 }
 
-                if(_current_id == 0){
+                /*if(_current_id == 0){
                 //If there are currently no orders to be taken just add the order into the orderbook
                 _price = _sell_amt.div(_buy_amt);
                 //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
-                insert(_price, _id, _sell_token, _buy_token);
-                }
+                ob.insert(_price, _id, _sell_token, _buy_token);
+                }*/
 
 
                 int _order_fill_amount;
@@ -72,39 +106,51 @@ contract MatchingEngine is Exchange, OrderBook{
                     //Now fill the orders
                     _order_fill_amount = currentOffers[_id].sell_amt.toInt256() - currentOffers[_current_id].buy_amt.toInt256();
 
+                    //emit out1(_order_fill_amount);
+
                     if(_order_fill_amount > 0){
+
+                        //_next_current_id = ob.orderBook[_buy_token][_sell_token].next(_current_id);
+                        //emit out(_current_id);
+                        //emit out(_next_current_id);
     
                         //Partially filled
+                        _trade(_current_id, _id, currentOffers[_current_id].buy_amt); //Maybe sell_amt;
 
-                        //Have to go to the next order and see if you can fill it 
+                        _current_id = ob.orderBook[_buy_token][_sell_token].first();
+
+                        //Have to go to the next order and see if you can fill it
+                        //_current_id = ob.orderBook[_buy_token][_sell_token].next(_current_id);
+                        //_current_id = _next_current_id;
+
+                        //emit out(_current_id);
 
                     }
                     else{
            
                         //Fully filled
+                        emit out(99);
                         _trade(_id, _current_id, currentOffers[_id].sell_amt);
 
                     }
 
 
                     //If the no orders in the book at left over to the book
-                    if(_current_id == 0){
+                    /*if(_current_id == 0){
                         //If there are currently no orders to be taken just add the order into the orderbook
                         _price = _sell_amt.div(_buy_amt);
                         //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
-                        insert(_price, _id, _sell_token, _buy_token);
+                        ob.insert(_price, _id, _sell_token, _buy_token);
                         break;
-                    }
+                    }*/
                 }
-
-           
             }
-            else{
+            /*else{
                 //If there are currently no orders to be taken just add the order into the orderbook
                 _price = _sell_amt.div(_buy_amt);
                 //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
-                insert(_price, _id, _sell_token, _buy_token);
-            }
+                ob.insert(_price, _id, _sell_token, _buy_token);
+            }*/
         }
     }*/
 
@@ -114,11 +160,11 @@ contract MatchingEngine is Exchange, OrderBook{
         //Only use overwritten function if matching engine is turned on
         if(EngineTrading){
             //Removing from the order book
-            orderBook[currentOffers[_order_id].sell_token][currentOffers[_order_id].buy_token].remove(_order_id);
+            ob.orderBook[currentOffers[_order_id].sell_token][currentOffers[_order_id].buy_token].remove(_order_id);
             //calculating new price
             uint _price = currentOffers[_order_id].sell_amt.div(currentOffers[_order_id].buy_amt);
             //Inserting the order back into the tree - after the order should be updated
-            orderBook[currentOffers[_order_id].sell_token][currentOffers[_order_id].buy_token].insert(_price,_order_id);
+            ob.orderBook[currentOffers[_order_id].sell_token][currentOffers[_order_id].buy_token].insert(_price,_order_id);
         }
     }
 
@@ -130,7 +176,7 @@ contract MatchingEngine is Exchange, OrderBook{
         }
         else{
             //Removing from the order book
-            orderBook[currentOffers[_order_id].sell_token][currentOffers[_order_id].buy_token].remove(_order_id);
+            ob.orderBook[currentOffers[_order_id].sell_token][currentOffers[_order_id].buy_token].remove(_order_id);
             //Removing orders from offer mapping
             super.cancelOffer(_order_id);
         }
@@ -157,10 +203,12 @@ contract MatchingEngine is Exchange, OrderBook{
         usertokens[currentOffers[_offer2].owner][currentOffers[_offer2].buy_token] = usertokens[currentOffers[_offer2].owner][currentOffers[_offer2].buy_token].add(tradeAmount);
         usertokens[msg.sender][currentOffers[_offer2].sell_token] = usertokens[msg.sender][currentOffers[_offer2].sell_token].add(_quantity);
 
-        //Updating order information
+        //Updating order information - always clear offer1
         currentOffers[_offer1].buy_amt = 0;
         currentOffers[_offer1].sell_amt = 0;
+        ob.orderBook[currentOffers[_offer1].sell_token][currentOffers[_offer1].buy_token].remove(_offer1);//Not going to work when not in tree
         emit FilledOffer(currentOffers[_offer1].sell_amt, currentOffers[_offer1].sell_token, currentOffers[_offer1].buy_amt, currentOffers[_offer1].buy_token, currentOffers[_offer1].owner, currentOffers[_offer1].expires, block.timestamp);
+        delete currentOffers[_offer1];
 
         currentOffers[_offer2].buy_amt = currentOffers[_offer2].buy_amt.sub(tradeAmount);
         currentOffers[_offer2].sell_amt = currentOffers[_offer2].sell_amt.sub(_quantity);
@@ -169,12 +217,12 @@ contract MatchingEngine is Exchange, OrderBook{
         if(currentOffers[_offer2].sell_amt == 0){
             emit FilledOffer(currentOffers[_offer2].sell_amt, currentOffers[_offer2].sell_token, currentOffers[_offer2].buy_amt, currentOffers[_offer2].buy_token, currentOffers[_offer2].owner, currentOffers[_offer2].expires, block.timestamp);
             //Reset order
+            ob.orderBook[currentOffers[_offer2].sell_token][currentOffers[_offer2].buy_token].remove(_offer2);
             delete currentOffers[_offer2];
         }
         else{
             emit PartialFillOffer(currentOffers[_offer2].sell_amt, currentOffers[_offer2].sell_token, currentOffers[_offer2].buy_amt, currentOffers[_offer2].buy_token, currentOffers[_offer2].owner, currentOffers[_offer2].expires, block.timestamp);
         }
-
     }
 
 }

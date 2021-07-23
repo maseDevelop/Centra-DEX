@@ -26,7 +26,8 @@
   },
   "homepage": "https://github.com/maseDevelop/chain_DEX#readme",
   "dependencies": {
-    "@openzeppelin/contracts": "^4.2.0"
+    "@openzeppelin/contracts": "^4.2.0",
+    "truffle-contract-size": "^2.0.1"
   },
   "devDependencies": {
     "chai": "^4.3.4",

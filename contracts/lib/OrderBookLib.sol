@@ -1,20 +1,21 @@
 //SPDX-License-Identifier: GPL-3.0
-
 pragma solidity >=0.4.22 <0.9.0;
 
 //Import RBTree library and other libraries
-import "./lib/BokkyPooBahsRedBlackTreeLibrary.sol";
+import "./BokkyPooBahsRedBlackTreeLibrary.sol";
 
 /**
 @title library that keeps a sorted order book
  */
-contract OrderBook {
+library OrderBookLib {
 
     //Importing Libraries
     using BokkyPooBahsRedBlackTreeLibrary for BokkyPooBahsRedBlackTreeLibrary.Tree;
 
-    //Sell -> Buy -> Tree that holds the orders
-    mapping (address => mapping(address => BokkyPooBahsRedBlackTreeLibrary.Tree)) orderBook;
+    struct OB {
+        //Sell -> Buy -> Tree that holds the orders
+        mapping (address => mapping(address => BokkyPooBahsRedBlackTreeLibrary.Tree)) orderBook;
+    }
 
     /**
     Inserts an order into the order book
@@ -23,9 +24,9 @@ contract OrderBook {
     @param _sell_token the address of the sell token
     @param _buy_token the address of the buy token
      */
-    function insert(uint _price, uint _id, address _sell_token, address _buy_token) public {
+    function insert(OB storage self,uint _price, uint _id, address _sell_token, address _buy_token) public {
         //Order book mapping to insert into 
-        orderBook[_sell_token][_buy_token].insert(_price, _id);
+        self.orderBook[_sell_token][_buy_token].insert(_price, _id);
     }
 
    /**
@@ -34,10 +35,13 @@ contract OrderBook {
     @param _sell_token the address of the sell token
     @param _buy_token the address of the buy token
      */
-    function remove(uint _id, address _sell_token, address _buy_token) public {
+    function remove(OB storage self,uint _id, address _sell_token, address _buy_token) public {
         //Order book mapping to remove from
-        orderBook[_sell_token][_buy_token].remove(_id);
+        self.orderBook[_sell_token][_buy_token].remove(_id);
     }
+
+
+    event FirstOfferEvent(uint256 id);
 
     /**
     Gets the best offer id for the specific order book
@@ -45,9 +49,11 @@ contract OrderBook {
     @param _buy_token the address of the buy token
     @return _id the id of teh lowest offer
     */
-    function getFirstOffer(address _sell_token, address _buy_token) public view returns(uint) {
-        return orderBook[_sell_token][_buy_token].first();
+    function getFirstOffer(OB storage self, address _sell_token, address _buy_token) public view returns(uint) {
+        //emit FirstOfferEvent(self.orderBook[_sell_token][_buy_token].first());
+        return self.orderBook[_sell_token][_buy_token].first();
     }
+
 
     /**
     Gets the dearest offer id for the specific order book
@@ -55,8 +61,8 @@ contract OrderBook {
     @param _buy_token the address of the buy token
     @return _id the id of teh lowest offer
     */
-    function getLastOffer(address _sell_token, address _buy_token) public view returns(uint) {
-        return orderBook[_sell_token][_buy_token].last();
+    function getLastOffer(OB storage self, address _sell_token, address _buy_token) public view returns(uint) {
+        return self.orderBook[_sell_token][_buy_token].last();
     }
 
     /**
@@ -66,9 +72,9 @@ contract OrderBook {
     @param _buy_token the address of the buy token
     @return price the price for that order
     */
-    function getNode(uint _id, address _sell_token, address _buy_token) public view returns (uint price) {
-        if (orderBook[_sell_token][_buy_token].exists(_id)) {
-            (,,,,price,) = orderBook[_sell_token][_buy_token].getNode(_id);
+    function getNode(OB storage self, uint _id, address _sell_token, address _buy_token) public view returns (uint price) {
+        if (self.orderBook[_sell_token][_buy_token].exists(_id)) {
+            (,,,,price,) = self.orderBook[_sell_token][_buy_token].getNode(_id);
             return price;
         }
     }
