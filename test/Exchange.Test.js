@@ -292,6 +292,7 @@ contract("Exchange", (accounts) => {
         });
 
     });
+
 });
 
 

@@ -22,6 +22,7 @@ contract Exchange {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     using Counters for Counters.Counter;
+   
 
     //Seen Nonces - to prevent replay attacks
     //mapping(address => mapping(uint256 => bool)) internal  seenNonces;
@@ -270,8 +271,5 @@ contract Exchange {
         delete currentOffers[_order_id];
 
     }
-
-    
-
 
 }
