@@ -27,6 +27,7 @@
   "homepage": "https://github.com/maseDevelop/chain_DEX#readme",
   "dependencies": {
     "@openzeppelin/contracts": "^4.2.0",
+    "bignumber.js": "^9.0.1",
     "decimal.js": "^10.3.1",
     "prb-math": "^2.2.0",
     "truffle-contract-size": "^2.0.1"
