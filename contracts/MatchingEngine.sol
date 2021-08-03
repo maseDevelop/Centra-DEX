@@ -13,6 +13,8 @@ import "./lib/OrderBookLib.sol";
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
+import "prb-math/contracts/PRBMathUD60x18.sol";
+
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 /**
@@ -29,6 +31,7 @@ contract MatchingEngine is Exchange {
     using OrderBookLib for OrderBookLib.OB;
     using SafeMath for uint256;
     using SafeCast for uint256;
+    using PRBMathUD60x18 for uint256;
 
     OrderBookLib.OB ob;
 
@@ -58,7 +61,8 @@ contract MatchingEngine is Exchange {
         _id = super.makeOffer(_sell_amt,_sell_token,_buy_amt,_buy_token,_expires);
 
         //Add to the order book - This removes any chance for deleting when not in tree error
-        uint256 _price = _sell_amt.div(_buy_amt);
+        //uint256 _price = _sell_amt.div(_buy_amt);
+        uint256 _price = PRBMathUD60x18.div(_sell_amt,_buy_amt);
         //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
         ob.orderBook[_sell_token][_buy_token].insert(_price, _id);
 
@@ -70,7 +74,8 @@ contract MatchingEngine is Exchange {
             if(ob.orderBook[_buy_token][_sell_token].root != 0){
 
                 //Lowest price taker is willing to sell for
-                uint _lowest_price_t_sell_price = _buy_amt.div(_sell_amt);//Make sure this calculation is correct
+                //uint _lowest_price_t_sell_price = _buy_amt.div(_sell_amt);//Make sure this calculation is correct
+                uint _lowest_price_t_sell_price = PRBMathUD60x18.div(_buy_amt,_sell_amt);//Make sure this calculation is correct
 
                 emit out(_lowest_price_t_sell_price);
 
@@ -162,7 +167,8 @@ contract MatchingEngine is Exchange {
             //Removing from the order book
             ob.orderBook[currentOffers[_order_id].sell_token][currentOffers[_order_id].buy_token].remove(_order_id);
             //calculating new price
-            uint _price = currentOffers[_order_id].sell_amt.div(currentOffers[_order_id].buy_amt);
+            //uint _price = currentOffers[_order_id].sell_amt.div(currentOffers[_order_id].buy_amt);
+            uint _price = PRBMathUD60x18.div(currentOffers[_order_id].sell_amt,currentOffers[_order_id].buy_amt);
             //Inserting the order back into the tree - after the order should be updated
             ob.orderBook[currentOffers[_order_id].sell_token][currentOffers[_order_id].buy_token].insert(_price,_order_id);
         }
@@ -187,7 +193,9 @@ contract MatchingEngine is Exchange {
 
         //make sure that you are not taking more than the they are selling 
         //price infered on exchange esimated price as not just a order price for fiat
-        uint256 tradeAmount = _quantity.mul(currentOffers[_offer2].buy_amt).div(currentOffers[_offer2].sell_amt);
+        //uint256 tradeAmount = _quantity.mul(currentOffers[_offer2].buy_amt).div(currentOffers[_offer2].sell_amt);
+        uint256 tradeAmountMul = PRBMathUD60x18.mul(_quantity,currentOffers[_offer2].buy_amt);
+        uint256 tradeAmount = PRBMathUD60x18.div(tradeAmountMul,currentOffers[_offer2].sell_amt);
 
         //Make sure trade amount is valid
         require(tradeAmount >= 0, "Trade amount is not valid");

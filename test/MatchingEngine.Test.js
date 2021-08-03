@@ -2,6 +2,8 @@ const MatchingEngine = artifacts.require("MatchingEngine");
 const Testtoken1 = artifacts.require("Testtoken1");
 const Testtoken2 = artifacts.require("Testtoken2");
 const TestBokkyPooBahsRedBlackTreeRaw = artifacts.require("TestBokkyPooBahsRedBlackTreeRaw");
+const {ToBigNum} = require('./helper/ToBigNum');
+const { default: BigNumber } = require('bignumber.js');
 
 const { assert } = require('chai');
 //Truffle asserts 
@@ -408,75 +410,75 @@ contract("MatchingEngine Simulation", (accounts) => {
 
         //Distribute tokens amongst all user accounts - Token 1
         //account 0 already has tokens
-        await this.token1.transfer(accounts[1],100);
-        await this.token1.transfer(accounts[2],100);
-        await this.token1.transfer(accounts[3],100);
-        await this.token1.transfer(accounts[4],100);
-        await this.token1.transfer(accounts[5],100);
-        await this.token1.transfer(accounts[6],100);
-        await this.token1.transfer(accounts[7],100);
-        await this.token1.transfer(accounts[8],100);
-        await this.token1.transfer(accounts[9],100);
+        await this.token1.transfer(accounts[1],ToBigNum(100));
+        await this.token1.transfer(accounts[2],ToBigNum(100));
+        await this.token1.transfer(accounts[3],ToBigNum(100));
+        await this.token1.transfer(accounts[4],ToBigNum(100));
+        await this.token1.transfer(accounts[5],ToBigNum(100));
+        await this.token1.transfer(accounts[6],ToBigNum(100));
+        await this.token1.transfer(accounts[7],ToBigNum(100));
+        await this.token1.transfer(accounts[8],ToBigNum(100));
+        await this.token1.transfer(accounts[9],ToBigNum(100));
 
         //Distribute tokens amongst all user accounts - Token 2
         //account 0 already has tokens
-        await this.token2.transfer(accounts[1],100);
-        await this.token2.transfer(accounts[2],100);
-        await this.token2.transfer(accounts[3],100);
-        await this.token2.transfer(accounts[4],100);
-        await this.token2.transfer(accounts[5],100);
-        await this.token2.transfer(accounts[6],100);
-        await this.token2.transfer(accounts[7],100);
-        await this.token2.transfer(accounts[8],100);
-        await this.token2.transfer(accounts[9],100);
+        await this.token2.transfer(accounts[1],ToBigNum(100));
+        await this.token2.transfer(accounts[2],ToBigNum(100));
+        await this.token2.transfer(accounts[3],ToBigNum(100));
+        await this.token2.transfer(accounts[4],ToBigNum(100));
+        await this.token2.transfer(accounts[5],ToBigNum(100));
+        await this.token2.transfer(accounts[6],ToBigNum(100));
+        await this.token2.transfer(accounts[7],ToBigNum(100));
+        await this.token2.transfer(accounts[8],ToBigNum(100));
+        await this.token2.transfer(accounts[9],ToBigNum(100));
 
         //Approving the contracts usage by each of the account - Token 1
-        await this.token1.approve(this.matchingEngine.address,100,{from: accounts[0]});
-        await this.token1.approve(this.matchingEngine.address,100,{from: accounts[1]});
-        await this.token1.approve(this.matchingEngine.address,100,{from: accounts[2]});
-        await this.token1.approve(this.matchingEngine.address,100,{from: accounts[3]});
-        await this.token1.approve(this.matchingEngine.address,100,{from: accounts[4]});
-        await this.token1.approve(this.matchingEngine.address,100,{from: accounts[5]});
-        await this.token1.approve(this.matchingEngine.address,100,{from: accounts[6]});
-        await this.token1.approve(this.matchingEngine.address,100,{from: accounts[7]});
-        await this.token1.approve(this.matchingEngine.address,100,{from: accounts[8]});
-        await this.token1.approve(this.matchingEngine.address,100,{from: accounts[9]});
+        await this.token1.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[0]});
+        await this.token1.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[1]});
+        await this.token1.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[2]});
+        await this.token1.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[3]});
+        await this.token1.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[4]});
+        await this.token1.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[5]});
+        await this.token1.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[6]});
+        await this.token1.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[7]});
+        await this.token1.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[8]});
+        await this.token1.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[9]});
 
         //Approving the contracts usage by each of the account - Token 2
-        await this.token2.approve(this.matchingEngine.address,100,{from: accounts[0]});
-        await this.token2.approve(this.matchingEngine.address,100,{from: accounts[1]});
-        await this.token2.approve(this.matchingEngine.address,100,{from: accounts[2]});
-        await this.token2.approve(this.matchingEngine.address,100,{from: accounts[3]});
-        await this.token2.approve(this.matchingEngine.address,100,{from: accounts[4]});
-        await this.token2.approve(this.matchingEngine.address,100,{from: accounts[5]});
-        await this.token2.approve(this.matchingEngine.address,100,{from: accounts[6]});
-        await this.token2.approve(this.matchingEngine.address,100,{from: accounts[7]});
-        await this.token2.approve(this.matchingEngine.address,100,{from: accounts[8]});
-        await this.token2.approve(this.matchingEngine.address,100,{from: accounts[9]});
+        await this.token2.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[0]});
+        await this.token2.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[1]});
+        await this.token2.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[2]});
+        await this.token2.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[3]});
+        await this.token2.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[4]});
+        await this.token2.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[5]});
+        await this.token2.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[6]});
+        await this.token2.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[7]});
+        await this.token2.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[8]});
+        await this.token2.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[9]});
 
         //Depositing tokens into the exchange - Token 1
-        await this.matchingEngine.depositToken(this.token1.address,100,{from: accounts[0]});
-        await this.matchingEngine.depositToken(this.token1.address,100,{from: accounts[1]});
-        await this.matchingEngine.depositToken(this.token1.address,100,{from: accounts[2]});
-        await this.matchingEngine.depositToken(this.token1.address,100,{from: accounts[3]});
-        await this.matchingEngine.depositToken(this.token1.address,100,{from: accounts[4]});
-        await this.matchingEngine.depositToken(this.token1.address,100,{from: accounts[5]});
-        await this.matchingEngine.depositToken(this.token1.address,100,{from: accounts[6]});
-        await this.matchingEngine.depositToken(this.token1.address,100,{from: accounts[7]});
-        await this.matchingEngine.depositToken(this.token1.address,100,{from: accounts[8]});
-        await this.matchingEngine.depositToken(this.token1.address,100,{from: accounts[9]});
+        await this.matchingEngine.depositToken(this.token1.address,ToBigNum(100),{from: accounts[0]});
+        await this.matchingEngine.depositToken(this.token1.address,ToBigNum(100),{from: accounts[1]});
+        await this.matchingEngine.depositToken(this.token1.address,ToBigNum(100),{from: accounts[2]});
+        await this.matchingEngine.depositToken(this.token1.address,ToBigNum(100),{from: accounts[3]});
+        await this.matchingEngine.depositToken(this.token1.address,ToBigNum(100),{from: accounts[4]});
+        await this.matchingEngine.depositToken(this.token1.address,ToBigNum(100),{from: accounts[5]});
+        await this.matchingEngine.depositToken(this.token1.address,ToBigNum(100),{from: accounts[6]});
+        await this.matchingEngine.depositToken(this.token1.address,ToBigNum(100),{from: accounts[7]});
+        await this.matchingEngine.depositToken(this.token1.address,ToBigNum(100),{from: accounts[8]});
+        await this.matchingEngine.depositToken(this.token1.address,ToBigNum(100),{from: accounts[9]});
 
         //Depositing tokens into the exchange - Token 2
-        await this.matchingEngine.depositToken(this.token2.address,100,{from: accounts[0]});
-        await this.matchingEngine.depositToken(this.token2.address,100,{from: accounts[1]});
-        await this.matchingEngine.depositToken(this.token2.address,100,{from: accounts[2]});
-        await this.matchingEngine.depositToken(this.token2.address,100,{from: accounts[3]});
-        await this.matchingEngine.depositToken(this.token2.address,100,{from: accounts[4]});
-        await this.matchingEngine.depositToken(this.token2.address,100,{from: accounts[5]});
-        await this.matchingEngine.depositToken(this.token2.address,100,{from: accounts[6]});
-        await this.matchingEngine.depositToken(this.token2.address,100,{from: accounts[7]});
-        await this.matchingEngine.depositToken(this.token2.address,100,{from: accounts[8]});
-        await this.matchingEngine.depositToken(this.token2.address,100,{from: accounts[9]});
+        await this.matchingEngine.depositToken(this.token2.address,ToBigNum(100),{from: accounts[0]});
+        await this.matchingEngine.depositToken(this.token2.address,ToBigNum(100),{from: accounts[1]});
+        await this.matchingEngine.depositToken(this.token2.address,ToBigNum(100),{from: accounts[2]});
+        await this.matchingEngine.depositToken(this.token2.address,ToBigNum(100),{from: accounts[3]});
+        await this.matchingEngine.depositToken(this.token2.address,ToBigNum(100),{from: accounts[4]});
+        await this.matchingEngine.depositToken(this.token2.address,ToBigNum(100),{from: accounts[5]});
+        await this.matchingEngine.depositToken(this.token2.address,ToBigNum(100),{from: accounts[6]});
+        await this.matchingEngine.depositToken(this.token2.address,ToBigNum(100),{from: accounts[7]});
+        await this.matchingEngine.depositToken(this.token2.address,ToBigNum(100),{from: accounts[8]});
+        await this.matchingEngine.depositToken(this.token2.address,ToBigNum(100),{from: accounts[9]});
      
     })
 
@@ -488,14 +490,14 @@ contract("MatchingEngine Simulation", (accounts) => {
 
             for (let i = 0; i < 10; i++) {
                 //Adding value to array
-                balancesToken1.push(await this.matchingEngine.getBalance(this.token1.address,{from: accounts[i]}));
-                balancesToken2.push(await this.matchingEngine.getBalance(this.token2.address,{from: accounts[i]}));
+                balancesToken1.push(new BigNumber(await this.matchingEngine.getBalance(this.token1.address,{from: accounts[i]})));
+                balancesToken2.push(new BigNumber(await this.matchingEngine.getBalance(this.token2.address,{from: accounts[i]})));
             }
 
             //Assertions
             for(let j = 0; j < 10; j++){
-                assert.equal(balancesToken1[j],100,"Not correct balance for token 1");
-                assert.equal(balancesToken2[j],100,"Not correct balance for token 2");
+                assert.equal(balancesToken1[j].toNumber(),ToBigNum(100).toNumber(),"Not correct balance for token 1");
+                assert.equal(balancesToken2[j].toNumber(),ToBigNum(100).toNumber(),"Not correct balance for token 2");
             }
 
         });
@@ -515,25 +517,25 @@ contract("MatchingEngine Simulation", (accounts) => {
     describe("Testing insertion method", () =>{
 
         it("adding an order into the tree - Price 3 units", async () =>{
-            await this.matchingEngine.makeOffer(30, this.token1.address, 10, this.token2.address, 0, {from: accounts[0]});
+            await this.matchingEngine.makeOffer(ToBigNum(30), this.token1.address, ToBigNum(10), this.token2.address, 0, {from: accounts[0]});
             const id = await this.matchingEngine.getFirstOffer(this.token1.address, this.token2.address);
             assert.equal(id,1,"Order not_sell_token added into order book");
         });
 
         it("adding a higher priced order into the tree from a differnt account - Price 5 units", async () =>{
-            await this.matchingEngine.makeOffer(10, this.token1.address, 2, this.token2.address, 0, {from: accounts[1]});
+            await this.matchingEngine.makeOffer(ToBigNum(10), this.token1.address, ToBigNum(2), this.token2.address, 0, {from: accounts[1]});
             const id = await this.matchingEngine.getFirstOffer(this.token1.address, this.token2.address);
             assert.equal(id,1,"Order is to high to be first order");
         });
 
         it("adding a lower priced order into the tree from a differnt account - Price 1 units", async () =>{
-            await this.matchingEngine.makeOffer(5, this.token1.address, 5, this.token2.address, 0, {from: accounts[2]});
+            await this.matchingEngine.makeOffer(ToBigNum(5), this.token1.address, ToBigNum(5), this.token2.address, 0, {from: accounts[2]});
             const id = await this.matchingEngine.getFirstOffer(this.token1.address, this.token2.address);
             assert.equal(id,3,"Order is to high to be first order");
         });
 
         it("Inserting an offer and becoming the taker of current offers from a different account - Price 1 Units - Enough to take 2 orders from the book", async () =>{
-            await this.matchingEngine.makeOffer(12, this.token2.address, 12, this.token1.address, 0, {from: accounts[3]});
+            await this.matchingEngine.makeOffer(ToBigNum(12) , this.token2.address, ToBigNum(12), this.token1.address, 0, {from: accounts[3]});
             //const out = await this.matchingEngine.getFirstOffer(this.token1.address, this.token2.address);
             //console.log(out);
 
@@ -546,15 +548,15 @@ contract("MatchingEngine Simulation", (accounts) => {
             console.log(one);
             console.log(two);
             console.log(three);
-            console.log(four);*/
+            console.log(four)*/
 
             const out = await this.matchingEngine.getFirstOffer(this.token1.address, this.token2.address);
             assert.equal(out,1);
 
             orderOutput = await this.matchingEngine.getOrderDetails(1);
             assert(orderOutput['id'] == 1,"id not equal to 3");
-            assert(orderOutput['sell_amt'] == 23, "sell amount not equal to 23");
-            assert(orderOutput['buy_amt'] == 8, "buy amount not equal to 2");
+            assert(orderOutput['sell_amt'] == ToBigNum(23).toNumber(), "sell amount not equal to 23");
+            assert(orderOutput['buy_amt'] == ToBigNum(7.666666666666666667).toNumber(), "buy amount not equal to 7.666666667");
             assert(orderOutput['sell_token'] == this.token1.address, "token 1 address is not the same");
             assert(orderOutput['buy_token'] == this.token2.address, "token 2 address is not the same");
         });
@@ -563,6 +565,5 @@ contract("MatchingEngine Simulation", (accounts) => {
             const out = await this.matchingEngine.getFirstOffer(this.token2.address, this.token1.address);
             assert.equal(out,0);
         });
-
     });
 });
