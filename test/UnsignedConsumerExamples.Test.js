@@ -9,9 +9,10 @@ const truffleAssert = require('truffle-assertions');
 
 /**
  * This is more for me to gain an understand of how the prb-math
- * library works. 
+ * library works, than to provide any testing work - I just want
+ * see some examples in action.  
  */
-contract("TestContract", accounts => {
+contract.skip("TestContract", accounts => {
 
     this.TestContract = undefined
 
@@ -77,7 +78,7 @@ contract("TestContract", accounts => {
              //0 / 5  = 0
              const first = 0;
              const second = 5 * 1e18;
-             let out = await this.TestContract.unsignedMul(BigInt(first),BigInt(second));
+             let out = await this.TestContract.unsignedDiv(BigInt(first),BigInt(second));
              out = out/1e18;
              assert.equal(out,0);
 
@@ -85,48 +86,37 @@ contract("TestContract", accounts => {
 
         it("Divide when denominator is zero", async ()=>{
 
-             //5 / 0  = undefined - Should just be zero fromm the library
-             const first = 5 * 1e18;
-             const second = 0;
-             let out = await this.TestContract.unsignedMul(BigInt(first),BigInt(second));
-             out = out/1e18;
-             assert.equal(out,0);
-
+             //5 / 0  = undefined - Should throw an error
+             try {
+                const first = 5 * 1e18;
+                const second = 0;
+                await this.TestContract.unsignedDiv(BigInt(first),BigInt(second));
+            } catch (error) {
+                assert(true);
+            }
         });
 
         it("Divide when both numbers are decimal", async ()=>{
-            
-            //11111111111.5456 / 5.5 = 202020202020;
-
-            //const first = 111.5456 * 1e18;
-            //const second =5.5 * 1e18;
-
-            //const first = new Decimal(12983.989).mul(1e18);
-            //const second = new Decimal(782.99).mul(1e18);
 
             const first = new Decimal(1234567.88).mul(1e18);
             const second = new Decimal(782.99).mul(1e18);
-
-            console.log(first);
-            console.log(second);
-
-            console.log("first: ", (first/second));
-            console.log("second: ", 1234567.88/782.99);
-            let out = await this.TestContract.unsignedMul(BigNumber(first),BigNumber(second));
+            let out = await this.TestContract.unsignedDiv(BigNumber(first),BigNumber(second));
             out = out/1e18;
-            console.log(out);
-            assert.equal(out,10166333.54711);
+            assert.equal(out,-1576.7351818030882);
 
         });
 
-        it("Divide when both numbers are Integer", async ()=>{
+        it("Divide when they wont divide cleanly", async ()=>{
+            //50/3 = 16.16.666666666666664
+
+            const first = new Decimal(50).mul(1e18);
+            const second = new Decimal(3).mul(1e18);
+            let out = await this.TestContract.unsignedDiv(BigNumber(first),BigNumber(second));
+            out = out/1e18;
+            assert.equal(out,16.666666666666664);
+
 
         });
-
-        it("Divide when it is a clean divide", async ()=>{
-
-        });
-
     });
 
 });

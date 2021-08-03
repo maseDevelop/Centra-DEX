@@ -16,5 +16,9 @@ contract TestUnsignedConsumer {
     result = PRBMathUD60x18.mul(x,y);
   }
 
+  function unsignedDiv(uint256 x, uint256 y) external pure returns (uint256 result) {
+    result = PRBMathUD60x18.div(x, y);
+  }
+
 }
 
