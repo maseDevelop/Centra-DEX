@@ -95,17 +95,16 @@ contract Exchange {
     function depositToken(address _tokenAddress, uint256 _tokenAmount) public  {
 
         require(address(_tokenAddress) != address(0x0),"This is Ether, Please deposit a ERC20 compliant token");
-
-        require(_tokenAmount != 0,"token amoount is set to zero, please specifier amount greater than 0");
+        require(_tokenAmount != 0,"Token amount is set to zero, please specify amount greater than 0");
 
         //Creating an interface for the token
         IERC20 _token = IERC20(_tokenAddress);
 
-        //Call for the token by the user
+        //Call for the token
         _token.safeTransferFrom(msg.sender, address(this), _tokenAmount);
 
         //Save that the user has deposited the token into the contract
-        usertokens[msg.sender][_tokenAddress] = usertokens[msg.sender][_tokenAddress].add(_tokenAmount); //NEED TO CHECK THIS
+        usertokens[msg.sender][_tokenAddress] = usertokens[msg.sender][_tokenAddress].add(_tokenAmount);
 
         //emit an event
         emit Deposit(_tokenAddress,msg.sender,_tokenAmount,usertokens[msg.sender][_tokenAddress]);
