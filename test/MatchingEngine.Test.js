@@ -457,7 +457,8 @@ contract("MatchingEngine Simulation", (accounts) => {
         await this.token2.approve(this.matchingEngine.address,ToBigNum(100),{from: accounts[9]});
 
         //Depositing tokens into the exchange - Token 1
-        await this.matchingEngine.depositToken(this.token1.address,ToBigNum(100),{from: accounts[0]});
+        const tx = await this.matchingEngine.depositToken(this.token1.address,ToBigNum(100),{from: accounts[0]});
+        truffleAssert.eventEmitted(tx, 'Deposit');
         await this.matchingEngine.depositToken(this.token1.address,ToBigNum(100),{from: accounts[1]});
         await this.matchingEngine.depositToken(this.token1.address,ToBigNum(100),{from: accounts[2]});
         await this.matchingEngine.depositToken(this.token1.address,ToBigNum(100),{from: accounts[3]});
