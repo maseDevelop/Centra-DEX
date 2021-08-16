@@ -11,6 +11,8 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
+import "prb-math/contracts/PRBMathUD60x18.sol";
+
 import "@openzeppelin/contracts/utils/Counters.sol";
 
 /**
@@ -22,6 +24,8 @@ contract Exchange {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     using Counters for Counters.Counter;
+    using PRBMathUD60x18 for uint256;
+   
 
     //Seen Nonces - to prevent replay attacks
     //mapping(address => mapping(uint256 => bool)) internal  seenNonces;
@@ -189,7 +193,7 @@ contract Exchange {
 
     }
 
-    //event TradeAmount(uint256 tradeAmount);
+    event TradeAmount(uint256 tradeAmount);
     //event AddressGet(address add);
 
     /**
@@ -217,7 +221,9 @@ contract Exchange {
         require(usertokens[msg.sender][tokenAddress] >= _quantity, "You don't have the required token amount to make the trade");
 
         //make sure that you are not taking more than the they are selling - price infered on exchange esimated price as not just a order price for fiat
-        uint256 tradeAmount = _quantity.mul(currentOffer.buy_amt).div(currentOffer.sell_amt);
+        //uint256 tradeAmount = _quantity.mul(currentOffer.buy_amt).div(currentOffer.sell_amt);
+        uint256 tradeAmountMul = PRBMathUD60x18.mul(_quantity,currentOffer.buy_amt);
+        uint256 tradeAmount = PRBMathUD60x18.div(tradeAmountMul,currentOffer.sell_amt);
 
         //Make sure trade amount is valid
         require(tradeAmount >= 0, "Trade amount is not valid");
@@ -269,8 +275,5 @@ contract Exchange {
         delete currentOffers[_order_id];
 
     }
-
-    
-
 
 }
