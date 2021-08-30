@@ -63,6 +63,25 @@ contract Exchange {
         bool orderFilled; // <-- false as default true when order is canceled or filled
         
     }
+    
+    //Internal Structs used to communicate with off chain
+    struct order {
+        uint sell_amt;
+        address sell_token;
+        uint buy_amt;
+        address buy_token;
+        address owner;
+        bytes signature;
+    }
+
+    struct tradeData {
+        address taker_address;
+        address taker_token;
+        uint taker_sell_amt;
+        address maker_address;
+        address maker_token;
+        uint maker_buy_amt;
+    }
 
     //Events
     event MakeOffer(uint id, uint sell_amt, address sell_token, uint buy_amt, address buy_token, address owner, uint256 expires, uint256 timeStamp);
@@ -84,6 +103,54 @@ contract Exchange {
         _;
         mutex = false;
         }
+    }
+    
+    /**
+    @dev Checks that the signature comes from CENTRA
+    @param _signature the signature of the order
+    @param _tradeData the trade data for the function call
+    @param _centra_signature the signature from CENTRA
+     */ 
+    modifier verifyCentraSig (
+        bytes memory _signature,
+        tradeData memory _tradeData,
+        bytes memory _centra_signature
+    ) { 
+        //checking that signature for centra backend did not change
+        require(keccak256(abi.encodePacked(
+            _signature,
+            _tradeData.taker_address,
+            _tradeData.taker_token,
+            _tradeData.taker_sell_amt,
+            _tradeData.maker_address,
+            _tradeData.maker_token,
+            _tradeData.maker_buy_amt
+        )).toEthSignedMessageHash()
+          .recover(_centra_signature) == centra_DEX_address, "1");
+          
+        //Return to function
+        _;
+    }
+
+    /**
+    @dev Checks that the signature comes from CENTRA
+    @param _order the order data
+    */
+    modifier verifyOrderSig(
+        order memory _order
+    ) {
+        //checking that the orders owner signed the order
+        require(keccak256(abi.encodePacked(
+            _order.sell_amt,
+            _order.sell_token,
+            _order.buy_amt,
+            _order.buy_token,
+            _order.owner
+        )).toEthSignedMessageHash()
+          .recover(_order.signature) == _order.owner, "2");
+
+        //Return to function
+        _;
     }
 
     /**
@@ -281,76 +348,22 @@ contract Exchange {
 
     }
 
-    struct order {
-        uint sell_amt;
-        address sell_token;
-        uint buy_amt;
-        address buy_token;
-        address owner;
-        bytes signature;
-    }
-
-    struct tradeData {
-        address taker_address;
-        address taker_token;
-        uint taker_sell_amt;
-        address maker_address;
-        address maker_token;
-        uint maker_buy_amt;
-    }
-
-    function verifyCentraSig (
-        bytes memory signature,
-        tradeData memory _tradeData,
-        bytes memory centra_signature
-    ) internal pure returns (bool){
-        //checking that signature for centra backend did not change
-        return (keccak256(abi.encodePacked(
-            signature,
-            _tradeData.taker_address,
-            _tradeData.taker_token,
-            _tradeData.taker_sell_amt,
-            _tradeData.maker_address,
-            _tradeData.maker_token,
-            _tradeData.maker_buy_amt
-        )).toEthSignedMessageHash()
-          .recover(centra_signature) == centra_DEX_address);
-    }
-
-    function verifyOrderSig(
-        order memory _order
-    ) internal pure returns (bool){
-        //checking that the orders owner signed the order
-        return (keccak256(abi.encodePacked(
-            _order.sell_amt,
-            _order.sell_token,
-            _order.buy_amt,
-            _order.buy_token,
-            _order.owner
-        )).toEthSignedMessageHash()
-          .recover(_order.signature) == _order.owner);
-    }
-
    //need to use a nonce - have a list of seen nonces
     function offChainTrade(
         order memory _order,
         tradeData memory _tradeData,
-        bytes memory centra_signature
-        )
-    public {
-
-        //Verifying order signer
-        require(verifyOrderSig(
-            _order
-        ),"1");
-
-        //Verifying the order has been signed by CENTRA
-        require(verifyCentraSig(
-            _order.signature,
-            _tradeData,
-            centra_signature
-        ),"2");
-
+        bytes memory _centra_signature
+    )
+    public
+    verifyOrderSig(
+        _order
+    )
+    verifyCentraSig(
+        _order.signature,
+        _tradeData,
+        _centra_signature
+    )
+    {
         require(msg.sender == _tradeData.taker_address, "3");
     }
 
