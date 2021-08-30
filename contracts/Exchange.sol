@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: GPL-3.0
 
-pragma solidity >=0.4.22 <0.9.0;
+pragma solidity ^0.8.0;
 
 //Importing contract
 //import "./MatchingEngine.sol";
@@ -15,6 +15,8 @@ import "prb-math/contracts/PRBMathUD60x18.sol";
 
 import "@openzeppelin/contracts/utils/Counters.sol";
 
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+
 /**
 @title Exchange Contract
 */
@@ -25,7 +27,10 @@ contract Exchange {
     using SafeERC20 for IERC20;
     using Counters for Counters.Counter;
     using PRBMathUD60x18 for uint256;
+    using ECDSA for bytes32;
    
+    //Centra DEX public key
+    address constant internal centra_DEX_address = 0xACa94ef8bD5ffEE41947b4585a84BdA5a3d3DA6E;
 
     //Seen Nonces - to prevent replay attacks
     //mapping(address => mapping(uint256 => bool)) internal  seenNonces;
@@ -275,5 +280,185 @@ contract Exchange {
         delete currentOffers[_order_id];
 
     }
+
+    struct order {
+        uint sell_amt;
+        address sell_token;
+        uint buy_amt;
+        address buy_token;
+        address owner;
+        bytes signature;
+    }
+
+    struct tradeData {
+        address taker_address;
+        address taker_token;
+        uint taker_sell_amt;
+        address maker_address;
+        address maker_token;
+        uint maker_buy_amt;
+    }
+
+    function verifyCentraSig (
+        bytes memory signature,
+        tradeData memory _tradeData,
+        bytes memory centra_signature
+    ) internal pure returns (bool){
+        //checking that signature for centra backend did not change
+        return (keccak256(abi.encodePacked(
+            signature,
+            _tradeData.taker_address,
+            _tradeData.taker_token,
+            _tradeData.taker_sell_amt,
+            _tradeData.maker_address,
+            _tradeData.maker_token,
+            _tradeData.maker_buy_amt
+        )).toEthSignedMessageHash()
+          .recover(centra_signature) == centra_DEX_address);
+    }
+
+    function verifyOrderSig(
+        order memory _order
+    ) internal pure returns (bool){
+        //checking that the orders owner signed the order
+        return (keccak256(abi.encodePacked(
+            _order.sell_amt,
+            _order.sell_token,
+            _order.buy_amt,
+            _order.buy_token,
+            _order.owner
+        )).toEthSignedMessageHash()
+          .recover(_order.signature) == _order.owner);
+    }
+
+   //need to use a nonce - have a list of seen nonces
+    function offChainTrade(
+        order memory _order,
+        tradeData memory _tradeData,
+        bytes memory centra_signature
+        )
+    public {
+
+        //Verifying order signer
+        require(verifyOrderSig(
+            _order
+        ),"1");
+
+        //Verifying the order has been signed by CENTRA
+        require(verifyCentraSig(
+            _order.signature,
+            _tradeData,
+            centra_signature
+        ),"2");
+
+        require(msg.sender == _tradeData.taker_address, "3");
+    }
+
+    /*function verifyCentraSig (
+        bytes memory signature,
+        address taker_address,
+        address taker_token,
+        uint taker_sell_amt,
+        address maker_address,
+        address maker_token,
+        uint maker_buy_amt,
+        bytes memory centra_signature
+    ) internal returns (bool){
+
+        //Checking that signature for centra backend did not change
+        return (keccak256(abi.encodePacked(
+            signature,
+            taker_address,
+            taker_token,
+            taker_sell_amt,
+            maker_address,
+            maker_token,
+            maker_buy_amt
+        )).toEthSignedMessageHash()
+          .recover(centra_signature) == centra_DEX_address);
+    }
+
+    function verifyOrderSig(
+        uint sell_amt,
+        address sell_token,
+        uint buy_amt,
+        address buy_token,
+        address owner,
+        bytes memory signature
+    ) internal returns (bool){
+
+        //checking that the orders owner signed the order
+        return (keccak256(abi.encodePacked(
+            sell_amt,
+            sell_token,
+            buy_amt,
+            buy_token,
+            owner
+        )).toEthSignedMessageHash()
+          .recover(signature) == owner);
+       
+    }
+
+   //need to use a nonce - have a list of seen nonces
+    function offchaintrade(
+        uint sell_amt,
+        address sell_token,
+        uint buy_amt,
+        address buy_token,
+        address owner,
+        bytes memory signature,
+        address taker_address,
+        address taker_token,
+        uint taker_sell_amt,
+        address maker_address,
+        address maker_token,
+        uint maker_buy_amt,
+        bytes memory centra_signature
+        )
+    public {
+
+        //Verifying order signer
+        verifyOrderSig(
+            sell_amt,
+            sell_token,
+            buy_amt,
+            buy_token,
+            owner,
+            signature
+        );
+
+        //Verifying the order has been signed by CENTRA
+        verifyCentraSig(
+            signature,
+            taker_address,
+            taker_token,
+            taker_sell_amt,
+            maker_address,
+            maker_token,
+            maker_buy_amt,
+            centra_signature
+        );
+
+        require(msg.sender == taker_address, "3");
+    }*/
+
+    //NEED TO ADD NONCE
+    /*
+    
+    uint sell_amt,
+    address sell_token,
+    uint buy_amt,
+    address buy_token,
+    address owner,
+    bytes memory signature,
+    address taker_token,
+    uint taker_sell_amt,
+    address maker_address,
+    address maker_token,
+    uint maker_buy_amt,
+    bytes memory centra_signature,
+
+    */
+
 
 }
