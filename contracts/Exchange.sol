@@ -90,6 +90,8 @@ contract Exchange {
     event Deposit(address token,address user, uint256 amount, uint256 balance);
     event Withdraw(address token,address user,uint256 amount,uint256 balance);
     event CanceledOffer(uint sell_amt, address sell_token, uint buy_amt, address buy_token, address owner, uint256 expires, uint256 timeStamp);
+    event TradeSettled(address taker_address, address taker_token, uint taker_sell_amt, address maker_address, address maker_token, uint maker_buy_amt);
+
 
     //Modifiers
     bool internal mutex = false;//global mutex variable
@@ -349,129 +351,23 @@ contract Exchange {
     }
 
    //need to use a nonce - have a list of seen nonces
-    function offChainTrade(
-        order memory _order,
-        tradeData memory _tradeData,
-        bytes memory _centra_signature
-    )
-    public
-    verifyOrderSig(
-        _order
-    )
-    verifyCentraSig(
-        _order.signature,
-        _tradeData,
-        _centra_signature
-    )
-    {
+    function offChainTrade(order memory _order, tradeData memory _tradeData, bytes memory _centra_signature) public verifyOrderSig(_order) verifyCentraSig( _order.signature, _tradeData, _centra_signature){
+        
         require(msg.sender == _tradeData.taker_address, "3");
+
+        //Check that the taker and maker both have funds
+        require(usertokens[_tradeData.taker_address][_tradeData.taker_token] >= _tradeData.taker_sell_amt, "Not enough tokens 1");
+        require(usertokens[_tradeData.maker_address][_tradeData.maker_token] >= _tradeData.maker_buy_amt, "Not enough tokens 2");
+
+        //Make the trade
+        usertokens[_tradeData.taker_address][_tradeData.taker_token] = usertokens[_tradeData.taker_address][_tradeData.taker_token].sub(_tradeData.taker_sell_amt);      
+        usertokens[_tradeData.maker_address][_tradeData.maker_token] = usertokens[_tradeData.maker_address][_tradeData.maker_token].sub(_tradeData.maker_buy_amt);
+        
+        usertokens[_tradeData.taker_address][_tradeData.maker_token] = usertokens[_tradeData.taker_address][_tradeData.maker_token].add(_tradeData.maker_buy_amt);      
+        usertokens[_tradeData.maker_address][_tradeData.taker_token] = usertokens[_tradeData.maker_address][_tradeData.taker_token].add(_tradeData.taker_sell_amt);
+
+        //Trade settled
+        emit TradeSettled(_tradeData.taker_address, _tradeData.taker_token, _tradeData.taker_sell_amt, _tradeData.maker_address, _tradeData.maker_token, _tradeData.maker_buy_amt);
+
     }
-
-    /*function verifyCentraSig (
-        bytes memory signature,
-        address taker_address,
-        address taker_token,
-        uint taker_sell_amt,
-        address maker_address,
-        address maker_token,
-        uint maker_buy_amt,
-        bytes memory centra_signature
-    ) internal returns (bool){
-
-        //Checking that signature for centra backend did not change
-        return (keccak256(abi.encodePacked(
-            signature,
-            taker_address,
-            taker_token,
-            taker_sell_amt,
-            maker_address,
-            maker_token,
-            maker_buy_amt
-        )).toEthSignedMessageHash()
-          .recover(centra_signature) == centra_DEX_address);
-    }
-
-    function verifyOrderSig(
-        uint sell_amt,
-        address sell_token,
-        uint buy_amt,
-        address buy_token,
-        address owner,
-        bytes memory signature
-    ) internal returns (bool){
-
-        //checking that the orders owner signed the order
-        return (keccak256(abi.encodePacked(
-            sell_amt,
-            sell_token,
-            buy_amt,
-            buy_token,
-            owner
-        )).toEthSignedMessageHash()
-          .recover(signature) == owner);
-       
-    }
-
-   //need to use a nonce - have a list of seen nonces
-    function offchaintrade(
-        uint sell_amt,
-        address sell_token,
-        uint buy_amt,
-        address buy_token,
-        address owner,
-        bytes memory signature,
-        address taker_address,
-        address taker_token,
-        uint taker_sell_amt,
-        address maker_address,
-        address maker_token,
-        uint maker_buy_amt,
-        bytes memory centra_signature
-        )
-    public {
-
-        //Verifying order signer
-        verifyOrderSig(
-            sell_amt,
-            sell_token,
-            buy_amt,
-            buy_token,
-            owner,
-            signature
-        );
-
-        //Verifying the order has been signed by CENTRA
-        verifyCentraSig(
-            signature,
-            taker_address,
-            taker_token,
-            taker_sell_amt,
-            maker_address,
-            maker_token,
-            maker_buy_amt,
-            centra_signature
-        );
-
-        require(msg.sender == taker_address, "3");
-    }*/
-
-    //NEED TO ADD NONCE
-    /*
-    
-    uint sell_amt,
-    address sell_token,
-    uint buy_amt,
-    address buy_token,
-    address owner,
-    bytes memory signature,
-    address taker_token,
-    uint taker_sell_amt,
-    address maker_address,
-    address maker_token,
-    uint maker_buy_amt,
-    bytes memory centra_signature,
-
-    */
-
-
 }
