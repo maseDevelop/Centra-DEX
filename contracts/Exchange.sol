@@ -71,13 +71,14 @@ contract Exchange {
         uint buy_amt;
         address buy_token;
         address owner;
-        bytes signature;
     }
 
     struct tradeData {
+        uint taker_order_id;
         address taker_address;
         address taker_token;
         uint taker_sell_amt;
+        uint maker_order_id;
         address maker_address;
         address maker_token;
         uint maker_buy_amt;
@@ -90,7 +91,7 @@ contract Exchange {
     event Deposit(address token,address user, uint256 amount, uint256 balance);
     event Withdraw(address token,address user,uint256 amount,uint256 balance);
     event CanceledOffer(uint sell_amt, address sell_token, uint buy_amt, address buy_token, address owner, uint256 expires, uint256 timeStamp);
-    event TradeSettled(address taker_address, address taker_token, uint taker_sell_amt, address maker_address, address maker_token, uint maker_buy_amt);
+    event TradeSettled(uint taker_order_id, address taker_address, address taker_token, uint taker_sell_amt, uint maker_order_id, address maker_address, address maker_token, uint maker_buy_amt);
 
 
     //Modifiers
@@ -107,26 +108,25 @@ contract Exchange {
         }
     }
     
-    /**
-    @dev Checks that the signature comes from CENTRA
-    @param _signature the signature of the order
-    @param _tradeData the trade data for the function call
-    @param _centra_signature the signature from CENTRA
-     */ 
+    
     modifier verifyCentraSig (
         bytes memory _signature,
         tradeData memory _tradeData,
+        uint _taker_sell_amt,
+        uint _maker_buy_amt,
         bytes memory _centra_signature
     ) { 
         //checking that signature for centra backend did not change
         require(keccak256(abi.encodePacked(
             _signature,
+            _tradeData.taker_order_id,
             _tradeData.taker_address,
             _tradeData.taker_token,
-            _tradeData.taker_sell_amt,
+            _taker_sell_amt,
+            _tradeData.maker_order_id,
             _tradeData.maker_address,
             _tradeData.maker_token,
-            _tradeData.maker_buy_amt
+            _maker_buy_amt
         )).toEthSignedMessageHash()
           .recover(_centra_signature) == centra_DEX_address, "1");
           
@@ -139,7 +139,8 @@ contract Exchange {
     @param _order the order data
     */
     modifier verifyOrderSig(
-        order memory _order
+        order memory _order,
+        bytes memory _signature
     ) {
         //checking that the orders owner signed the order
         require(keccak256(abi.encodePacked(
@@ -149,7 +150,7 @@ contract Exchange {
             _order.buy_token,
             _order.owner
         )).toEthSignedMessageHash()
-          .recover(_order.signature) == _order.owner, "2");
+          .recover(_signature) == _order.owner, "2");
 
         //Return to function
         _;
@@ -351,12 +352,34 @@ contract Exchange {
     }
 
    //need to use a nonce - have a list of seen nonces
-    function offChainTrade(order memory _order, tradeData memory _tradeData, bytes memory _centra_signature) public verifyOrderSig(_order) verifyCentraSig( _order.signature, _tradeData, _centra_signature){
+    function offChainTrade(
+        order memory _order,
+        bytes memory _signature,
+        tradeData memory _tradeData, 
+        uint _taker_sell_amt,
+        uint _maker_order_id,
+        /*uint _taker_order_id,
+        address _taker_address,
+        address _taker_token,
+        uint _taker_sell_amt,
+        uint _maker_order_id,
+        address _maker_address,
+        address _maker_token,
+        uint _maker_buy_amt,*/
+        bytes memory _CENTRA_signature
+        ) 
+        public 
+        verifyOrderSig(_order, _signature) 
+        verifyCentraSig(_signature, _tradeData, _taker_sell_amt, _maker_order_id, _CENTRA_signature) 
+        {
         
-        require(msg.sender == _tradeData.taker_address, "3");
+        {
+            require(msg.sender == _tradeData.taker_address, "3");
+        }
+        require(4 == 55, "herlehj");
 
         //Check that the taker and maker both have funds
-        require(usertokens[_tradeData.taker_address][_tradeData.taker_token] >= _tradeData.taker_sell_amt, "Not enough tokens 1");
+        /*require(usertokens[_tradeData.taker_address][_tradeData.taker_token] >= _tradeData.taker_sell_amt, "Not enough tokens 1");
         require(usertokens[_tradeData.maker_address][_tradeData.maker_token] >= _tradeData.maker_buy_amt, "Not enough tokens 2");
 
         //Make the trade
@@ -367,7 +390,7 @@ contract Exchange {
         usertokens[_tradeData.maker_address][_tradeData.taker_token] = usertokens[_tradeData.maker_address][_tradeData.taker_token].add(_tradeData.taker_sell_amt);
 
         //Trade settled
-        emit TradeSettled(_tradeData.taker_address, _tradeData.taker_token, _tradeData.taker_sell_amt, _tradeData.maker_address, _tradeData.maker_token, _tradeData.maker_buy_amt);
-
+        emit TradeSettled(_tradeData.taker_order_id, _tradeData.taker_address, _tradeData.taker_token, _tradeData.taker_sell_amt, _tradeData.maker_order_id, _tradeData.maker_address, _tradeData.maker_token, _tradeData.maker_buy_amt);
+        */
     }
 }
