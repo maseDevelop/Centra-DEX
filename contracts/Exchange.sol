@@ -111,21 +111,26 @@ contract Exchange {
     
     modifier verifyCentraSig (
         bytes memory _signature,
-        tradeData memory _tradeData,
+        uint _taker_order_id,
+        address _taker_address,
+        address _taker_token,
         uint _taker_sell_amt,
+        uint _maker_order_id,
+        address _maker_address,
+        address _maker_token,
         uint _maker_buy_amt,
         bytes memory _centra_signature
     ) { 
         //checking that signature for centra backend did not change
         require(keccak256(abi.encodePacked(
             _signature,
-            _tradeData.taker_order_id,
-            _tradeData.taker_address,
-            _tradeData.taker_token,
+            _taker_order_id,
+            _taker_address,
+            _taker_token,
             _taker_sell_amt,
-            _tradeData.maker_order_id,
-            _tradeData.maker_address,
-            _tradeData.maker_token,
+            _maker_order_id,
+            _maker_address,
+            _maker_token,
             _maker_buy_amt
         )).toEthSignedMessageHash()
           .recover(_centra_signature) == centra_DEX_address, "1");
@@ -155,6 +160,13 @@ contract Exchange {
         //Return to function
         _;
     }
+
+    /*modifier verifyMessageSender(
+        address _taker_address
+    ) {
+        require(msg.sender == _taker_address, "3");
+        _;
+    }*/
 
     /**
     @dev Checks if the order is active
@@ -351,32 +363,44 @@ contract Exchange {
 
     }
 
+    /*function verifySender(address _taker_address) internal view {
+
+        require(msg.sender == _taker_address);
+
+    }*/
+
+    struct tradeDataMin {
+        uint taker_order_id;
+        address taker_address;
+        address taker_token;
+        uint maker_order_id;
+        address maker_address;
+        address maker_token;
+    }   
+
    //need to use a nonce - have a list of seen nonces
     function offChainTrade(
         order memory _order,
         bytes memory _signature,
-        tradeData memory _tradeData, 
-        uint _taker_sell_amt,
-        uint _maker_order_id,
-        /*uint _taker_order_id,
+        //tradeData memory _tradeData, 
+        uint _taker_order_id,
         address _taker_address,
         address _taker_token,
         uint _taker_sell_amt,
         uint _maker_order_id,
         address _maker_address,
         address _maker_token,
-        uint _maker_buy_amt,*/
+        uint _maker_buy_amt,
         bytes memory _CENTRA_signature
         ) 
         public 
         verifyOrderSig(_order, _signature) 
-        verifyCentraSig(_signature, _tradeData, _taker_sell_amt, _maker_order_id, _CENTRA_signature) 
+        verifyCentraSig(_signature, _taker_order_id, _taker_address, _taker_token, _taker_sell_amt, _maker_order_id, _maker_address, _maker_token, _maker_buy_amt , _CENTRA_signature) 
         {
-        
-        {
-            require(msg.sender == _tradeData.taker_address, "3");
-        }
-        require(4 == 55, "herlehj");
+
+            tradeDataMin memory _tradeData = tradeDataMin(_taker_order_id, _taker_address, _taker_token, _maker_order_id, _maker_address, _maker_token);            
+
+
 
         //Check that the taker and maker both have funds
         /*require(usertokens[_tradeData.taker_address][_tradeData.taker_token] >= _tradeData.taker_sell_amt, "Not enough tokens 1");
