@@ -377,6 +377,71 @@ contract Exchange {
         address maker_address;
         address maker_token;
     }   
+    
+    function verifyCentraSigFn (
+        bytes memory _signature,
+        tradeData memory _tradeData,
+        bytes memory _centra_signature
+    ) 
+    internal 
+    pure 
+    { 
+        //checking that signature for centra backend did not change
+        require(keccak256(abi.encodePacked(
+            _signature,
+            _tradeData.taker_order_id,
+            _tradeData.taker_address,
+            _tradeData.taker_token,
+            _tradeData.taker_sell_amt,
+            _tradeData.maker_order_id,
+            _tradeData.maker_address,
+            _tradeData.maker_token,
+            _tradeData.maker_buy_amt
+        )).toEthSignedMessageHash()
+          .recover(_centra_signature) == centra_DEX_address, "1");
+          
+        //Return to function
+    }
+
+    /**
+    @dev Checks that the signature comes from CENTRA
+    @param _order the order data
+    */
+    function verifyOrderSigFn(
+        order memory _order,
+        bytes memory _signature
+    )
+    internal
+    pure
+    {
+        //checking that the orders owner signed the order
+        require(keccak256(abi.encodePacked(
+            _order.sell_amt,
+            _order.sell_token,
+            _order.buy_amt,
+            _order.buy_token,
+            _order.owner
+        )).toEthSignedMessageHash()
+          .recover(_signature) == _order.owner, "2");
+
+        //Return to function
+    }
+
+    function internalTrade(
+        tradeData memory _tradeData
+    ) 
+    private 
+    {
+
+        //Check that the taker and maker both have funds
+        require(usertokens[_tradeData.taker_address][_tradeData.taker_token] >= _tradeData.taker_sell_amt, "Not enough tokens 1");
+        require(usertokens[_tradeData.maker_address][_tradeData.maker_token] >= _tradeData.maker_buy_amt, "Not enough tokens 2");
+
+        usertokens[_tradeData.taker_address][_tradeData.taker_token] = usertokens[_tradeData.taker_address][_tradeData.taker_token].sub(_tradeData.taker_sell_amt);      
+        usertokens[_tradeData.maker_address][_tradeData.maker_token] = usertokens[_tradeData.maker_address][_tradeData.maker_token].sub(_tradeData.maker_buy_amt);
+        
+        usertokens[_tradeData.taker_address][_tradeData.maker_token] = usertokens[_tradeData.taker_address][_tradeData.maker_token].add(_tradeData.maker_buy_amt);      
+    }    
 
    //need to use a nonce - have a list of seen nonces
     function offChainTrade(
@@ -392,29 +457,19 @@ contract Exchange {
         address _maker_token,
         uint _maker_buy_amt,
         bytes memory _CENTRA_signature
-        ) 
-        public 
-        verifyOrderSig(_order, _signature) 
-        verifyCentraSig(_signature, _taker_order_id, _taker_address, _taker_token, _taker_sell_amt, _maker_order_id, _maker_address, _maker_token, _maker_buy_amt , _CENTRA_signature) 
-        {
+    ) 
+    public 
+    {
 
-            tradeDataMin memory _tradeData = tradeDataMin(_taker_order_id, _taker_address, _taker_token, _maker_order_id, _maker_address, _maker_token);            
-
-
-
-        //Check that the taker and maker both have funds
-        /*require(usertokens[_tradeData.taker_address][_tradeData.taker_token] >= _tradeData.taker_sell_amt, "Not enough tokens 1");
-        require(usertokens[_tradeData.maker_address][_tradeData.maker_token] >= _tradeData.maker_buy_amt, "Not enough tokens 2");
-
-        //Make the trade
-        usertokens[_tradeData.taker_address][_tradeData.taker_token] = usertokens[_tradeData.taker_address][_tradeData.taker_token].sub(_tradeData.taker_sell_amt);      
-        usertokens[_tradeData.maker_address][_tradeData.maker_token] = usertokens[_tradeData.maker_address][_tradeData.maker_token].sub(_tradeData.maker_buy_amt);
+        //Because of stack depth constrants I am repacking into an object to save stakc space
+        tradeData memory _tradeData = tradeData(_taker_order_id, _taker_address, _taker_token, _taker_sell_amt, _maker_order_id, _maker_address, _maker_token, _maker_buy_amt);            
         
-        usertokens[_tradeData.taker_address][_tradeData.maker_token] = usertokens[_tradeData.taker_address][_tradeData.maker_token].add(_tradeData.maker_buy_amt);      
-        usertokens[_tradeData.maker_address][_tradeData.taker_token] = usertokens[_tradeData.maker_address][_tradeData.taker_token].add(_tradeData.taker_sell_amt);
+        verifyCentraSigFn(_signature,_tradeData, _CENTRA_signature);
+        verifyOrderSigFn(_order,_signature);
+        internalTrade(_tradeData);
 
         //Trade settled
         emit TradeSettled(_tradeData.taker_order_id, _tradeData.taker_address, _tradeData.taker_token, _tradeData.taker_sell_amt, _tradeData.maker_order_id, _tradeData.maker_address, _tradeData.maker_token, _tradeData.maker_buy_amt);
-        */
+        
     }
 }
