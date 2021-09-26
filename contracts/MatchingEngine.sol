@@ -42,14 +42,7 @@ contract MatchingEngine is Exchange {
         emit EngineTradingStatus(_value);
     }
 
-    event out(uint256 id);
-    event out1(int id);
-    event boolOut(bool out);
-
     function getFirstOffer(address _sell_token, address _buy_token) public view returns (uint) {
-        //return ob.getFirstOffer(_sell_token, _buy_token);
-
-        
         return ob.orderBook[_sell_token][_buy_token].first();
     }
 
@@ -62,7 +55,7 @@ contract MatchingEngine is Exchange {
 
         //Add to the order book - This removes any chance for deleting when not in tree error
         uint256 _price = PRBMathUD60x18.div(_sell_amt,_buy_amt);
-        //Lowest price a maker is willing to sell at 
+        //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
         ob.orderBook[_sell_token][_buy_token].insert(_price, _id);
 
 
