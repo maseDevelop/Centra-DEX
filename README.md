@@ -1,3 +1,3 @@
-# :new_moon: Centra_DEX
+# :new_moon: Centra-DEX
 
 Research Project
