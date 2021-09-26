@@ -61,7 +61,6 @@ contract MatchingEngine is Exchange {
         _id = super.makeOffer(_sell_amt,_sell_token,_buy_amt,_buy_token,_expires);
 
         //Add to the order book - This removes any chance for deleting when not in tree error
-        //uint256 _price = _sell_amt.div(_buy_amt);
         uint256 _price = PRBMathUD60x18.div(_sell_amt,_buy_amt);
         //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
         ob.orderBook[_sell_token][_buy_token].insert(_price, _id);
@@ -74,88 +73,44 @@ contract MatchingEngine is Exchange {
             if(ob.orderBook[_buy_token][_sell_token].root != 0){
 
                 //Lowest price taker is willing to sell for
-                //uint _lowest_price_t_sell_price = _buy_amt.div(_sell_amt);//Make sure this calculation is correct
-                uint _lowest_price_t_sell_price = PRBMathUD60x18.div(_buy_amt,_sell_amt);//Make sure this calculation is correct
-
-                emit out(_lowest_price_t_sell_price);
+                uint _lowest_price_t_sell_price = PRBMathUD60x18.div(_buy_amt,_sell_amt);
 
                 //Get the Lowest order in the tree
                 uint _current_id = ob.orderBook[_buy_token][_sell_token].first();
                 
-                emit out(_current_id);
-
                 //Search to find an order that meets the conditions of the taker
                 while(_current_id != 0){
                     if(ob.orderBook[_buy_token][_sell_token].nodes[_current_id].price < _lowest_price_t_sell_price){
                         //Get the next biggest value
-                        emit out(_current_id);
                         _current_id = ob.orderBook[_buy_token][_sell_token].next(_current_id);
                     }
                     else{
-                        emit out1(99);
                         break;
                     }
                 }
-
-                /*if(_current_id == 0){
-                //If there are currently no orders to be taken just add the order into the orderbook
-                _price = _sell_amt.div(_buy_amt);
-                //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
-                ob.insert(_price, _id, _sell_token, _buy_token);
-                }*/
-
-
+                
                 int _order_fill_amount;
                 while( currentOffers[_id].sell_amt != 0){
 
                     //Now fill the orders
                     _order_fill_amount = currentOffers[_id].sell_amt.toInt256() - currentOffers[_current_id].buy_amt.toInt256();
 
-                    //emit out1(_order_fill_amount);
-
                     if(_order_fill_amount > 0){
-
-                        //_next_current_id = ob.orderBook[_buy_token][_sell_token].next(_current_id);
-                        //emit out(_current_id);
-                        //emit out(_next_current_id);
-    
+   
                         //Partially filled
                         _trade(_current_id, _id, currentOffers[_current_id].buy_amt); //Maybe sell_amt;
 
                         _current_id = ob.orderBook[_buy_token][_sell_token].first();
 
-                        //Have to go to the next order and see if you can fill it
-                        //_current_id = ob.orderBook[_buy_token][_sell_token].next(_current_id);
-                        //_current_id = _next_current_id;
-
-                        //emit out(_current_id);
-
-                    }
+                       }
                     else{
            
                         //Fully filled
-                        emit out(99);
                         _trade(_id, _current_id, currentOffers[_id].sell_amt);
 
                     }
-
-
-                    //If the no orders in the book at left over to the book
-                    /*if(_current_id == 0){
-                        //If there are currently no orders to be taken just add the order into the orderbook
-                        _price = _sell_amt.div(_buy_amt);
-                        //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
-                        ob.insert(_price, _id, _sell_token, _buy_token);
-                        break;
-                    }*/
                 }
             }
-            /*else{
-                //If there are currently no orders to be taken just add the order into the orderbook
-                _price = _sell_amt.div(_buy_amt);
-                //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
-                ob.insert(_price, _id, _sell_token, _buy_token);
-            }*/
         }
     }
 
