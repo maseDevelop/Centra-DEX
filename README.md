@@ -1,3 +1,3 @@
-# :new_moon: Chain DEX
+# :new_moon: Centra_DEX
 
 Research Project
