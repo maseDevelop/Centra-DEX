@@ -62,7 +62,7 @@ contract MatchingEngine is Exchange {
 
         //Add to the order book - This removes any chance for deleting when not in tree error
         uint256 _price = PRBMathUD60x18.div(_sell_amt,_buy_amt);
-        //_price = _buy_amt.div(_sell_amt); //Lowest price a maker is willing to sell at 
+        //Lowest price a maker is willing to sell at 
         ob.orderBook[_sell_token][_buy_token].insert(_price, _id);
 
 
@@ -109,6 +109,7 @@ contract MatchingEngine is Exchange {
                         _trade(_id, _current_id, currentOffers[_id].sell_amt);
 
                     }
+                    
                 }
             }
         }
