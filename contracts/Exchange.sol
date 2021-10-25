@@ -399,10 +399,6 @@ contract Exchange {
         return returnValue;
     }
 
-    event TradeAmount(uint256 tradeAmount);
-
-    //event AddressGet(address add);
-
     /**
     @notice Takes a current offer
     @param _order_id The id of the order you want to fill
