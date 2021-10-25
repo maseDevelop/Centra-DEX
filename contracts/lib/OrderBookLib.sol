@@ -5,7 +5,9 @@ pragma solidity >=0.4.22 <0.9.0;
 import "./BokkyPooBahsRedBlackTreeLibrary.sol";
 
 /**
-@title library that keeps a sorted order book
+@title Order Book Library
+@notice library that keeps a sorted order book
+@author Mason Elliott
  */
 library OrderBookLib {
 
@@ -18,7 +20,7 @@ library OrderBookLib {
     }
 
     /**
-    Inserts an order into the order book
+    @notice Inserts an order into the order book
     @param _price the price for the token swap
     @param _id the id of the order
     @param _sell_token the address of the sell token
@@ -30,7 +32,7 @@ library OrderBookLib {
     }
 
    /**
-    Removes an order from the order book tree
+    @notice Removes an order from the order book tree
     @param _id the id of the order
     @param _sell_token the address of the sell token
     @param _buy_token the address of the buy token
@@ -40,23 +42,19 @@ library OrderBookLib {
         self.orderBook[_sell_token][_buy_token].remove(_id);
     }
 
-
-    event FirstOfferEvent(uint256 id);
-
     /**
-    Gets the best offer id for the specific order book
+    @notice Gets the best offer id for the specific order book
     @param _sell_token the address of the sell token
     @param _buy_token the address of the buy token
     @return _id the id of teh lowest offer
     */
     function getFirstOffer(OB storage self, address _sell_token, address _buy_token) public view returns(uint) {
-        //emit FirstOfferEvent(self.orderBook[_sell_token][_buy_token].first());
         return self.orderBook[_sell_token][_buy_token].first();
     }
 
 
     /**
-    Gets the dearest offer id for the specific order book
+    @notice Gets the dearest offer id for the specific order book
     @param _sell_token the address of the sell token
     @param _buy_token the address of the buy token
     @return _id the id of teh lowest offer
@@ -66,7 +64,7 @@ library OrderBookLib {
     }
 
     /**
-    Get an orders price
+    @notice Get an orders price
     @param _id the id of an order
     @param _sell_token the address of the sell token
     @param _buy_token the address of the buy token
