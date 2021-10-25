@@ -1,4 +1,4 @@
-# :new_moon: Centra-DEX
+# :comet: Centra-DEX
 
 Research Project
 
